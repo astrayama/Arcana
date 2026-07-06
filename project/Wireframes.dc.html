@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&amp;family=Caveat:wght@500;600&amp;family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,500&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f0eee9;font-family:'Patrick Hand',cursive;color:#2b2b2b}
+.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 6px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 15px/1.2 'Patrick Hand',cursive;color:#1a1a1a}
+.dv-opts{display:flex;flex-wrap:wrap;gap:30px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 14px/1.3 'Patrick Hand',cursive;color:rgba(0,0,0,.6)}
+.dv-opt:target .dv-oid{background:#7c5cbf;color:#fff}
+.dv-next{margin:26px 0 0;font:14px/1.6 'Patrick Hand',cursive;color:rgba(0,0,0,.55)}
+.grp{margin:34px 0 14px;font:600 11px ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(0,0,0,.4);border-top:1px dashed rgba(0,0,0,.15);padding-top:16px}
+.note{font-family:'Caveat',cursive;font-size:16px;line-height:1.2;color:#6b4fae;max-width:250px}
+.ph{width:250px;height:520px;border:2px solid #2b2b2b;border-radius:26px;background:#fff;display:flex;flex-direction:column;overflow:hidden;position:relative;box-shadow:2px 3px 0 rgba(0,0,0,.12)}
+.ph-s{width:172px;height:362px;border:2px solid #2b2b2b;border-radius:18px;background:#fff;display:flex;flex-direction:column;overflow:hidden;position:relative;box-shadow:2px 3px 0 rgba(0,0,0,.12);font-size:10px}
+.sb{display:flex;justify-content:space-between;padding:6px 12px 2px;font-size:9px;color:#999;flex:none}
+.hd{display:flex;align-items:center;gap:6px;padding:8px 12px 4px;font-size:15px}
+.ph-s .hd{font-size:11px;padding:5px 9px 2px}
+.sub{padding:0 12px;font-size:10px;color:#8a8a8a}
+.bd{flex:1;padding:8px 12px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.ph-s .bd{padding:6px 9px;gap:6px}
+.box{border:1.5px dashed #a3a3a3;border-radius:9px;padding:8px 10px}
+.img{background:repeating-linear-gradient(45deg,#f1eee7 0 5px,#fff 5px 10px);border:1.5px dashed #bcbcbc;border-radius:8px;display:flex;align-items:center;justify-content:center;font:9px ui-monospace,Menlo,monospace;color:#8a8a8a;text-align:center}
+.btn{border:1.5px solid #2b2b2b;border-radius:999px;text-align:center;padding:5px 10px;font-size:12px;background:#fff}
+.btn.p{background:#7c5cbf;color:#fff;border-color:#7c5cbf}
+.btn.g{background:#c9a227;color:#fff;border-color:#c9a227}
+.ph-s .btn{font-size:10px;padding:4px 8px}
+.chip{border:1.5px solid #a3a3a3;border-radius:999px;padding:1px 9px;font-size:9.5px;color:#666;background:#fff}
+.chip.on{border-color:#7c5cbf;color:#7c5cbf;background:#f2edfb}
+.chips{display:flex;gap:5px;flex-wrap:wrap}
+.tabbar{margin-top:auto;border-top:1.5px solid #2b2b2b;display:flex;align-items:flex-end;padding:6px 4px 12px;flex:none;background:#fff}
+.tb{flex:1;text-align:center;font-size:8.5px;color:#8a8a8a;line-height:1.1}
+.tb .ic{display:block;font-size:14px}
+.tb.on{color:#7c5cbf}
+.tc{width:34px;height:54px;border:1.5px solid #2b2b2b;border-radius:4px;background:repeating-linear-gradient(45deg,#f1eee7 0 4px,#fff 4px 8px);flex:none}
+.tc.sm{width:24px;height:38px}
+.row{display:flex;align-items:center;gap:8px}
+.line{height:5px;border-radius:3px;background:#dcd8cf}
+.entry{border:1.5px solid #cfcabe;border-radius:9px;padding:6px 8px;display:flex;gap:8px;align-items:center}
+.flow{display:flex;gap:10px;align-items:center}
+.arr{font-size:20px;color:#9a9a9a;flex:none}
+.field{border:1.5px solid #a3a3a3;border-radius:7px;padding:4px 8px;font-size:10px;color:#999;background:#fafaf7}
+.sheet{margin-top:auto;border:2px solid #2b2b2b;border-bottom:none;border-radius:16px 16px 0 0;background:#fff;padding:8px 10px 12px;display:flex;flex-direction:column;gap:7px;box-shadow:0 -2px 0 rgba(0,0,0,.08)}
+.dim{background:#eceae4}
+.grab{width:32px;height:4px;border-radius:2px;background:#c9c4b8;margin:0 auto 2px}
+.sw{width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(0,0,0,.2);flex:none}
+.stile{width:250px;border:2px solid #2b2b2b;border-radius:14px;background:#fff;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:2px 3px 0 rgba(0,0,0,.12)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cd{aspect-ratio:1;border:1px solid #ddd8cc;border-radius:5px;font-size:8px;color:#999;padding:2px;position:relative}
+.dot{width:5px;height:5px;border-radius:50%;position:absolute;bottom:3px;left:3px}
+.dot.g{background:#c9a227}.dot.b{background:#5b8fc9;left:10px}
+.tog{display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#555}
+.pill{width:26px;height:14px;border-radius:999px;border:1.5px solid #2b2b2b;position:relative}
+.pill.on{background:#7c5cbf;border-color:#7c5cbf}
+.pill.on::after{content:"";position:absolute;right:1px;top:1px;width:10px;height:10px;border-radius:50%;background:#fff}
+/* ---- hi-fi (turn 2) ---- */
+.hf{width:390px;height:844px;border-radius:54px;position:relative;overflow:hidden;flex:none;color:#f2eef7;font-family:'Nunito',sans-serif;display:flex;flex-direction:column;box-shadow:0 0 0 11px #17151d,0 0 0 13px #35323e,0 26px 50px rgba(0,0,0,.4);background:radial-gradient(ellipse at 20% 12%,rgba(88,58,138,.38) 0%,transparent 52%),radial-gradient(ellipse at 82% 88%,rgba(30,74,102,.32) 0%,transparent 52%),linear-gradient(180deg,#0d0b13 0%,#131020 100%)}
+.hf *{box-sizing:border-box}
+.sf{position:absolute;inset:0;z-index:0;background-image:radial-gradient(1px 1px at 20px 30px,#fff2cc 1px,transparent 0),radial-gradient(1px 1px at 90px 140px,#fff2cc 1px,transparent 0),radial-gradient(1.5px 1.5px at 160px 60px,rgba(255,242,204,.8) 1px,transparent 0),radial-gradient(1px 1px at 240px 190px,#fff2cc 1px,transparent 0),radial-gradient(1px 1px at 310px 90px,rgba(255,242,204,.7) 1px,transparent 0),radial-gradient(1.5px 1.5px at 60px 230px,rgba(255,242,204,.6) 1px,transparent 0);background-size:360px 260px;opacity:.35;pointer-events:none}
+.hsb{display:flex;align-items:center;justify-content:space-between;padding:16px 30px 4px;font:600 15px 'Nunito',sans-serif;flex:none;position:relative;z-index:4}
+.isl{position:absolute;left:50%;transform:translateX(-50%);top:13px;width:118px;height:34px;border-radius:20px;background:#000}
+.bat{width:24px;height:11px;border:1px solid rgba(255,255,255,.5);border-radius:3px;position:relative}
+.bat::after{content:"";position:absolute;top:1.5px;bottom:1.5px;left:1.5px;right:7px;background:#f2eef7;border-radius:1.5px}
+.hbody{flex:1;position:relative;z-index:2;padding:14px 24px 120px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.gp{background:rgba(24,22,34,.62);backdrop-filter:blur(20px);border:1px solid rgba(66,46,107,.55);border-radius:18px;box-shadow:0 8px 32px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05)}
+.pf{font-family:'Playfair Display',serif;font-weight:500}
+.gtx{background:linear-gradient(90deg,#b385e0,#b561d1,#66aacc);-webkit-background-clip:text;background-clip:text;color:transparent}
+.eyb{font:700 10.5px 'Nunito',sans-serif;letter-spacing:.16em;text-transform:uppercase}
+.mut{color:#a698b3}
+.htab{position:absolute;left:14px;right:14px;bottom:26px;height:64px;border-radius:32px;background:rgba(16,14,26,.74);backdrop-filter:blur(24px);border:1px solid rgba(66,46,107,.5);display:flex;align-items:center;justify-content:space-around;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:6}
+.hti{display:flex;flex-direction:column;align-items:center;gap:2px;font:700 10px 'Nunito',sans-serif;color:#8d81a3;width:84px}
+.hti.on{color:#b385e0}
+.hti .g{font-size:21px;line-height:1}
+.plus{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#c29bea,#8a5fc9);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:400;color:#120c1e;margin-top:-34px;box-shadow:0 0 26px rgba(179,133,224,.45),0 10px 22px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.3)}
+.hind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:rgba(255,255,255,.32);z-index:7}
+.cimg{border-radius:9px;border:1px solid rgba(246,206,85,.4);object-fit:cover;display:block}
+.cback{border-radius:10px;background:linear-gradient(160deg,#241e37 0%,#171422 100%);border:1.5px solid rgba(246,206,85,.42);display:flex;align-items:center;justify-content:center;color:rgba(246,206,85,.75);box-shadow:0 6px 18px rgba(0,0,0,.45)}
+.bgold{background:linear-gradient(135deg,#f6ce55,#e0b23e);color:#1c1204;font:800 15px 'Nunito',sans-serif;border-radius:15px;padding:15px;text-align:center;box-shadow:0 0 22px rgba(246,206,85,.26)}
+.bpurp{background:linear-gradient(135deg,#b385e0,#9367cf);color:#140e20;font:800 15px 'Nunito',sans-serif;border-radius:15px;padding:15px;text-align:center;box-shadow:0 0 22px rgba(179,133,224,.25)}
+.bglass{background:rgba(37,37,55,.6);border:1px solid #392d53;color:#f2eef7;border-radius:15px;padding:14px;text-align:center;font:700 14px 'Nunito',sans-serif}
+.shimbtn{position:relative;overflow:hidden}
+.shimbtn::after{content:"";position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);animation:hshim 3s infinite}
+.seg{display:flex;background:rgba(37,37,55,.6);border:1px solid #392d53;border-radius:13px;padding:3px}
+.seg div{flex:1;text-align:center;padding:9px;border-radius:10px;font:700 13px 'Nunito',sans-serif;color:#a698b3}
+.seg .on{background:rgba(179,133,224,.24);color:#c8a6ee}
+.hchip{border:1px solid #392d53;border-radius:999px;padding:5px 14px;font:700 12px 'Nunito',sans-serif;color:#a698b3;background:rgba(24,22,34,.5)}
+.hchip.on{border-color:rgba(179,133,224,.6);color:#c8a6ee;background:rgba(179,133,224,.14)}
+.jrow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px dashed rgba(66,46,107,.5)}
+.htog{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;font:600 14px 'Nunito',sans-serif}
+.hpill{width:44px;height:26px;border-radius:999px;background:rgba(37,37,55,.8);border:1px solid #392d53;position:relative}
+.hpill.on{background:linear-gradient(135deg,#b385e0,#9367cf);border-color:transparent}
+.hpill.on::after{content:"";position:absolute;right:2px;top:2px;width:20px;height:20px;border-radius:50%;background:#fff}
+.hpill:not(.on)::after{content:"";position:absolute;left:2px;top:2px;width:20px;height:20px;border-radius:50%;background:#8d81a3}
+@keyframes hfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes hglow{0%,100%{box-shadow:0 0 16px rgba(246,206,85,.22)}50%{box-shadow:0 0 30px rgba(246,206,85,.42)}}
+@keyframes hspark{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes hshim{0%{left:-100%}100%{left:100%}}
+.spark{animation:hspark 2.4s ease-in-out infinite;color:#fff2cc}
+.wtile{border-radius:24px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 25% 15%,rgba(88,58,138,.4) 0%,transparent 55%),linear-gradient(180deg,#12101c,#171327);border:1px solid rgba(66,46,107,.6);box-shadow:0 10px 26px rgba(0,0,0,.35);color:#f2eef7;font-family:'Nunito',sans-serif}
+</style>
+</helmet>
+<section class="dv-turn" id="t2" data-screen-label="Turn 2 — hi-fi mockups">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Hi-fi — structure <a class="dv-oid" href="#1b">1b</a> · journal <a class="dv-oid" href="#1f">1f</a> · quick log <a class="dv-oid" href="#1g">1g</a> (draw <a class="dv-oid" href="#1h">1h</a>, first-run <a class="dv-oid" href="#1i">1i</a>) · export <a class="dv-oid" href="#1j">1j</a> · style <a class="dv-oid" href="#1l">1l</a> · <a class="dv-oid" href="#1o">1o</a> + <a class="dv-oid" href="#1p">1p</a></span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="2a" data-screen-label="2a Today home">
+<div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Today — home tab</div>
+<div class="hf">
+<div class="sf"></div>
+<div class="hsb"><span>9:41</span><div class="isl"></div><div style="display:flex;align-items:center;gap:6px"><span style="letter-spacing:2px;font-size:11px">•••</span><div class="bat"></div></div></div>
+<div class="hbody">
+<div style="display:flex;align-items:flex-end;justify-content:space-between">
+<div><div class="pf" style="font-size:36px;line-height:1.05">Today</div><div class="mut" style="font-size:14px;margin-top:2px">Sunday, July 6</div></div>
+<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#b385e0,#66aacc);display:flex;align-items:center;justify-content:center;font:800 15px 'Nunito',sans-serif;color:#120c1e">A</div>
+</div>
+<div class="gp" style="border-color:rgba(246,206,85,.35);padding:18px;display:flex;gap:16px;align-items:center">
+<img class="cimg" src="https://commons.wikimedia.org/wiki/Special:FilePath/RWS_Tarot_18_Moon.jpg" alt="The Moon" style="width:106px;height:178px;animation:hfloat 6s ease-in-out infinite,hglow 6s ease-in-out infinite">
+<div style="flex:1;min-width:0">
+<div class="eyb" style="color:#f6ce55">Today's card</div>
+<div class="pf" style="font-size:27px;margin-top:4px">The Moon</div>
+<div class="mut" style="font-size:13px;margin-top:2px">Upright · Major Arcana</div>
+<div class="mut" style="font-size:13px;font-style:italic;margin-top:10px;line-height:1.45">“Strange dreams again — trusting the undercurrent…”</div>
+<div style="display:flex;align-items:center;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid rgba(66,46,107,.5);color:#c8a6ee;font:700 13px 'Nunito',sans-serif"><span class="spark">✦</span> AI insight <span style="margin-left:auto;color:#8d81a3">⌄</span></div>
+</div>
+</div>
+<div class="gp" style="padding:16px 18px;display:flex;gap:14px;align-items:center">
+<div style="width:44px;height:44px;border-radius:12px;background:rgba(102,170,204,.14);border:1px solid rgba(102,170,204,.35);display:flex;align-items:center;justify-content:center;color:#66aacc;font-size:19px">▤</div>
+<div style="flex:1"><div style="font:700 16px 'Nunito',sans-serif">Tarot Spreads</div><div class="mut" style="font-size:12.5px;margin-top:1px">Start a reading — 3-card, Celtic Cross, custom</div></div>
+<div class="mut" style="font-size:18px">›</div>
+</div>
+<div class="gp" style="padding:14px 18px;display:flex;gap:12px;align-items:center">
+<span style="color:#f6ce55;font-size:16px">✦</span>
+<div style="flex:1;font:600 13.5px 'Nunito',sans-serif" class="mut">12-day streak — full stats in your journal</div>
+<div class="mut" style="font-size:18px">›</div>
+</div>
+</div>
+<div class="htab"><div class="hti on"><span class="g">☾</span>Today</div><div class="plus">+</div><div class="hti"><span class="g">▦</span>Journal</div></div>
+<div class="hind"></div>
+</div>
+<div class="note">home = one glance: today's card, spreads entry, quiet streak link. card art floats + breathes gold (6s loop). ⊕ opens <a class="dv-oid" href="#2b">2b</a>.</div>
+</div>
+
+<div class="dv-opt" id="2b" data-screen-label="2b Quick log sheet">
+<div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>Quick-log sheet (default)</div>
+<div class="hf">
+<div class="sf"></div>
+<div style="position:absolute;inset:0;filter:blur(7px);opacity:.4;padding:60px 24px;z-index:1">
+<div class="pf" style="font-size:36px">Today</div>
+<div class="gp" style="height:200px;margin-top:16px"></div>
+<div class="gp" style="height:76px;margin-top:14px"></div>
+</div>
+<div style="position:absolute;inset:0;background:rgba(8,6,14,.45);z-index:2"></div>
+<div class="gp" style="position:absolute;left:0;right:0;bottom:0;z-index:3;border-radius:30px 30px 0 0;border-bottom:none;padding:14px 22px 40px;display:flex;flex-direction:column;gap:14px;background:rgba(19,16,30,.92)">
+<div style="width:38px;height:5px;border-radius:3px;background:rgba(255,255,255,.25);margin:0 auto"></div>
+<div class="pf" style="font-size:24px">Log today's card</div>
+<div style="display:flex;align-items:center;gap:10px;background:rgba(37,37,55,.7);border:1px solid #392d53;border-radius:13px;padding:12px 14px;font-size:14px" class="mut">⌕ <span style="color:#f2eef7">The Moon</span><span style="border-left:1.5px solid #b385e0;height:16px"></span></div>
+<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:13px;background:rgba(179,133,224,.1);border:1px solid rgba(179,133,224,.4)">
+<img class="cimg" src="https://commons.wikimedia.org/wiki/Special:FilePath/RWS_Tarot_18_Moon.jpg" alt="The Moon" style="width:40px;height:67px">
+<div style="flex:1"><div style="font:700 14px 'Nunito',sans-serif">The Moon</div><div class="mut" style="font-size:12px">XVIII · Major Arcana</div></div>
+<span style="color:#f6ce55;font-size:16px">✓</span>
+</div>
+<div class="seg"><div class="on">↑ Upright</div><div>↓ Reversed</div></div>
+<div style="background:rgba(37,37,55,.7);border:1px solid #392d53;border-radius:13px;padding:13px 14px;height:88px;font-size:13.5px" class="mut">What does it stir up?…</div>
+<div class="bgold shimbtn">Save to ledger ✦</div>
+</div>
+<div class="hind" style="background:rgba(255,255,255,.5)"></div>
+</div>
+<div class="note">springs up from ⊕ (or the empty today-tile). 10-second log; soft haptic on save; AI insight loads collapsed afterwards on <a class="dv-oid" href="#2a">2a</a>.</div>
+</div>
+
+<div class="dv-opt" id="2c" data-screen-label="2c Draw mode">
+<div class="dv-olabel"><a class="dv-oid" href="#2c">2c</a>Draw from the deck (optional)</div>
+<div style="display:flex;gap:22px;align-items:flex-start">
+<div class="hf">
+<div class="sf" style="opacity:.55"></div>
+<div class="hsb"><span>9:41</span><div class="isl"></div><div style="display:flex;align-items:center;gap:6px"><span style="letter-spacing:2px;font-size:11px">•••</span><div class="bat"></div></div></div>
+<div class="hbody" style="align-items:center;justify-content:center;gap:0">
+<div style="align-self:flex-start;color:#8d81a3;font-size:22px;margin-top:-40px">✕</div>
+<div class="pf" style="font-size:25px;text-align:center;margin-top:40px">Hold a question<br>in mind</div>
+<div style="position:relative;width:340px;height:250px;margin-top:26px">
+<div class="cback" style="position:absolute;width:94px;height:156px;left:12px;top:40px;transform:rotate(-22deg)"><span style="font-size:26px">☾</span></div>
+<div class="cback" style="position:absolute;width:94px;height:156px;left:70px;top:14px;transform:rotate(-11deg)"><span style="font-size:26px">☾</span></div>
+<div class="cback" style="position:absolute;width:94px;height:156px;left:126px;top:4px"><span style="font-size:26px">☾</span></div>
+<div class="cback" style="position:absolute;width:94px;height:156px;left:182px;top:14px;transform:rotate(11deg)"><span style="font-size:26px">☾</span></div>
+<div class="cback" style="position:absolute;width:94px;height:156px;left:238px;top:40px;transform:rotate(22deg)"><span style="font-size:26px">☾</span></div>
+</div>
+<div class="mut" style="font-size:13px;text-align:center">the deck drifts as you tilt the phone</div>
+<div style="width:82px;height:82px;border-radius:50%;border:2px solid rgba(246,206,85,.6);display:flex;align-items:center;justify-content:center;margin-top:22px;font:800 13px 'Nunito',sans-serif;color:#f6ce55;box-shadow:0 0 26px rgba(246,206,85,.2)">HOLD</div>
+</div>
+<div class="hind"></div>
+</div>
+<div class="hf">
+<div class="sf" style="opacity:.55"></div>
+<div class="hsb"><span>9:41</span><div class="isl"></div><div style="display:flex;align-items:center;gap:6px"><span style="letter-spacing:2px;font-size:11px">•••</span><div class="bat"></div></div></div>
+<div class="hbody" style="align-items:center;justify-content:center">
+<div class="eyb" style="color:#f6ce55">Your card</div>
+<img class="cimg" src="https://commons.wikimedia.org/wiki/Special:FilePath/RWS_Tarot_18_Moon.jpg" alt="The Moon" style="width:200px;height:334px;border-radius:14px;animation:hglow 5s ease-in-out infinite">
+<div class="pf" style="font-size:32px;margin-top:6px">The Moon</div>
+<div class="hchip on">↑ Upright</div>
+<div style="display:flex;gap:12px;width:100%;margin-top:10px">
+<div class="bgold shimbtn" style="flex:1.6">Journal it</div>
+<div class="bglass" style="flex:1">Draw again ↺</div>
+</div>
+</div>
+<div class="hind"></div>
+</div>
+</div>
+<div class="note" style="max-width:100%">hold-to-draw fills the ring → 3D flip reveal with a crisp haptic tick. “Journal it” drops into <a class="dv-oid" href="#2b">2b</a> pre-filled. manual log stays the default path.</div>
+</div>
+
+<div class="dv-opt" id="2d" data-screen-label="2d Journal ledger">
+<div class="dv-olabel"><a class="dv-oid" href="#2d">2d</a>Journal — the ledger book</div>
+<div class="hf">
+<div class="sf"></div>
+<div class="hsb"><span>9:41</span><div class="isl"></div><div style="display:flex;align-items:center;gap:6px"><span style="letter-spacing:2px;font-size:11px">•••</span><div class="bat"></div></div></div>
+<div class="hbody" style="gap:12px">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<span class="mut" style="font-size:20px">‹</span>
+<div style="text-align:center"><div class="pf gtx" style="font-size:30px">July</div><div class="mut" style="font-size:12px;letter-spacing:.2em">2026</div></div>
+<span class="mut" style="font-size:20px">›</span>
+</div>
+<div class="gp" style="display:flex;padding:13px 8px;text-align:center">
+<div style="flex:1"><div style="font:800 17px 'Nunito',sans-serif;color:#f6ce55">✦ 12</div><div class="mut" style="font-size:10.5px;margin-top:1px">DAY STREAK</div></div>
+<div style="flex:1;border-left:1px solid rgba(66,46,107,.5)"><div style="font:800 17px 'Nunito',sans-serif">24</div><div class="mut" style="font-size:10.5px;margin-top:1px">CARDS</div></div>
+<div style="flex:1;border-left:1px solid rgba(66,46,107,.5)"><div style="font:800 17px 'Nunito',sans-serif;color:#66aacc">6</div><div class="mut" style="font-size:10.5px;margin-top:1px">SPREADS</div></div>
+</div>
+<div style="display:flex;gap:7px"><span class="hchip on">All</span><span class="hchip">Cards</span><span class="hchip">Spreads</span><span class="hchip" style="margin-left:auto">⌕</span></div>
+<div class="gp" style="padding:2px 0;flex:1;overflow:hidden">
+<div class="jrow"><span class="mut" style="width:40px;font-size:11.5px;line-height:1.2">JUL<br><b style="font-size:15px;color:#f2eef7">6</b></span><img class="cimg" src="https://commons.wikimedia.org/wiki/Special:FilePath/RWS_Tarot_18_Moon.jpg" alt="" style="width:30px;height:50px"><div style="flex:1;min-width:0"><div style="font:700 14px 'Nunito',sans-serif">The Moon <span style="color:#f6ce55">↑</span></div><div class="mut" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Strange dreams again — trusting…</div></div><span class="mut">›</span></div>
+<div class="jrow"><span class="mut" style="width:40px;font-size:11.5px;line-height:1.2">JUL<br><b style="font-size:15px;color:#f2eef7">6</b></span><div style="display:flex"><img class="cimg" src="https://commons.wikimedia.org/wiki/Special:FilePath/RWS_Tarot_17_Star.jpg" alt="" style="width:30px;height:50px"><img class="cimg" src="https://commons.wikimedia.org/wiki/Special:FilePath/RWS_Tarot_19_Sun.jpg" alt="" style="width:30px;height:50px;margin-left:-14px"><img class="cimg" src="https://commons.wikimedia.org/wiki/Special:FilePath/Cups10.jpg" alt="" style="width:30px;height:50px;margin-left:-14px"></div><div style="flex:1;min-width:0"><div style="font:700 14px 'Nunito',sans-serif;color:#9ec8e2">Career check-in</div><div class="mut" style="font-size:12px">Past · Present · Future</div></div><span class="mut">›</span></div>
+<div class="jrow"><span class="mut" style="width:40px;font-size:11.5px;line-height:1.2">JUL<br><b style="font-size:15px;color:#f2eef7">5</b></span><img class="cimg" src="https://commons.wikimedia.org/wiki/Special:FilePath/Cups10.jpg" alt="" style="width:30px;height:50px;transform:rotate(180deg)"><div style="flex:1;min-width:0"><div style="font:700 14px 'Nunito',sans-serif">Ten of Cups <span style="color:#66aacc">↓</span></div><div class="mut" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Family dinner went sideways…</div></div><span class="mut">›</span></div>
+<div class="jrow"><span class="mut" style="width:40px;font-size:11.5px;line-height:1.2">JUL<br><b style="font-size:15px;color:#f2eef7">4</b></span><img class="cimg" src="https://commons.wikimedia.org/wiki/Special:FilePath/RWS_Tarot_17_Star.jpg" alt="" style="width:30px;height:50px"><div style="flex:1;min-width:0"><div style="font:700 14px 'Nunito',sans-serif">The Star <span style="color:#f6ce55">↑</span></div><div class="mut" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">A good omen before the interview</div></div><span class="mut">›</span></div>
+<div class="jrow" style="border-bottom:none"><span class="mut" style="width:40px;font-size:11.5px;line-height:1.2">JUL<br><b style="font-size:15px;color:#f2eef7">3</b></span><img class="cimg" src="https://commons.wikimedia.org/wiki/Special:FilePath/RWS_Tarot_09_Hermit.jpg" alt="" style="width:30px;height:50px"><div style="flex:1;min-width:0"><div style="font:700 14px 'Nunito',sans-serif">The Hermit <span style="color:#f6ce55">↑</span></div><div class="mut" style="font-size:12px">quiet day, no notes</div></div><span class="mut">›</span></div>
+</div>
+<div style="text-align:center" class="mut"><span style="font-size:12px">‹ swipe to flip months ›</span><div style="letter-spacing:4px;font-size:8px;margin-top:3px;color:#b385e0">● <span style="color:#4a4360">● ●</span></div></div>
+</div>
+<div class="htab"><div class="hti"><span class="g">☾</span>Today</div><div class="plus">+</div><div class="hti on"><span class="g">▦</span>Journal</div></div>
+<div class="hind"></div>
+</div>
+<div class="note">a month = a ledger page: stats header, ruled rows (cards + spreads mixed), page-flip swipe with a subtle paper-curl transition. streaks live here, per your call.</div>
+</div>
+
+<div class="dv-opt" id="2e" data-screen-label="2e Spread detail">
+<div class="dv-olabel"><a class="dv-oid" href="#2e">2e</a>Spread detail</div>
+<div class="hf">
+<div class="sf"></div>
+<div class="hsb"><span>9:41</span><div class="isl"></div><div style="display:flex;align-items:center;gap:6px"><span style="letter-spacing:2px;font-size:11px">•••</span><div class="bat"></div></div></div>
+<div class="hbody" style="gap:14px">
+<div style="display:flex;align-items:center;gap:12px"><span class="mut" style="font-size:20px">‹</span><div style="flex:1"><div class="pf" style="font-size:25px">Career check-in</div><div class="mut" style="font-size:12.5px">July 6 · Past, Present, Future</div></div><span class="mut" style="font-size:18px">⋯</span></div>
+<div class="gp" style="padding:18px 14px;display:flex;gap:12px;justify-content:center">
+<div style="text-align:center;flex:1"><div class="eyb mut" style="font-size:9.5px;margin-bottom:7px">Past</div><img class="cimg" src="https://commons.wikimedia.org/wiki/Special:FilePath/RWS_Tarot_17_Star.jpg" alt="The Star" style="width:96px;height:160px"><div style="font:700 12.5px 'Nunito',sans-serif;margin-top:7px">The Star</div></div>
+<div style="text-align:center;flex:1"><div class="eyb" style="font-size:9.5px;margin-bottom:7px;color:#f6ce55">Present</div><img class="cimg" src="https://commons.wikimedia.org/wiki/Special:FilePath/RWS_Tarot_19_Sun.jpg" alt="The Sun" style="width:96px;height:160px;animation:hglow 6s ease-in-out infinite"><div style="font:700 12.5px 'Nunito',sans-serif;margin-top:7px">The Sun</div></div>
+<div style="text-align:center;flex:1"><div class="eyb mut" style="font-size:9.5px;margin-bottom:7px">Future</div><img class="cimg" src="https://commons.wikimedia.org/wiki/Special:FilePath/Cups10.jpg" alt="Ten of Cups reversed" style="width:96px;height:160px;transform:rotate(180deg)"><div style="font:700 12.5px 'Nunito',sans-serif;margin-top:7px">Ten of Cups <span class="mut">(R)</span></div></div>
+</div>
+<div class="gp" style="padding:15px 17px"><div class="eyb mut" style="font-size:10px">Notes</div><div style="font-size:13.5px;line-height:1.55;margin-top:6px">Momentum from past hope into present clarity — but the reversed Ten warns me not to trade home life for the promotion.</div></div>
+<div class="gp" style="padding:14px 17px;display:flex;align-items:center;gap:8px;color:#c8a6ee;font:700 13.5px 'Nunito',sans-serif"><span class="spark">✦</span> Full spread insight <span style="margin-left:auto;color:#8d81a3">⌄</span></div>
+<div class="bgold shimbtn" style="margin-top:auto">↥ Export spread</div>
+</div>
+<div class="hind"></div>
+</div>
+<div class="note">cards stagger-fade in (60ms apart) with a faint parallax tilt as you scroll. export button leads to <a class="dv-oid" href="#2f">2f</a>.</div>
+</div>
+
+<div class="dv-opt" id="2f" data-screen-label="2f Export templates">
+<div class="dv-olabel"><a class="dv-oid" href="#2f">2f</a>Export — template picker</div>
+<div class="hf">
+<div class="sf"></div>
+<div class="hsb"><span>9:41</span><div class="isl"></div><div style="display:flex;align-items:center;gap:6px"><span style="letter-spacing:2px;font-size:11px">•••</span><div class="bat"></div></div></div>
+<div class="hbody" style="gap:16px">
+<div style="display:flex;align-items:center;gap:12px"><span class="mut" style="font-size:20px">‹</span><div class="pf" style="font-size:25px">Export</div></div>
+<div style="display:flex;gap:12px;align-items:flex-end;justify-content:center">
+<div style="text-align:center">
+<div style="width:96px;height:96px;border-radius:10px;border:1px solid #392d53;background:linear-gradient(180deg,#12101c,#171327);padding:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><div style="display:flex;gap:3px"><div class="cback" style="width:14px;height:23px;border-width:1px"></div><div class="cback" style="width:14px;height:23px;border-width:1px"></div><div class="cback" style="width:14px;height:23px;border-width:1px"></div></div><div style="font-family:'Playfair Display',serif;font-size:7px;color:#f2eef7">Career check-in</div></div>
+<div class="mut" style="font:700 11.5px 'Nunito',sans-serif;margin-top:7px">Post 1:1</div>
+</div>
+<div style="text-align:center">
+<div style="width:118px;height:210px;border-radius:12px;border:2px solid #f6ce55;background:linear-gradient(180deg,#12101c,#1a1530);padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;box-shadow:0 0 22px rgba(246,206,85,.25)"><div style="font-family:'Playfair Display',serif;font-size:9px;color:#f6ce55;letter-spacing:.1em">✦ JULY 6 ✦</div><div style="display:flex;gap:4px"><div class="cback" style="width:20px;height:33px;border-width:1px"></div><div class="cback" style="width:20px;height:33px;border-width:1px"></div><div class="cback" style="width:20px;height:33px;border-width:1px"></div></div><div style="font-family:'Playfair Display',serif;font-size:9.5px;color:#f2eef7">Career check-in</div><div style="width:60%;height:3px;background:#252537;border-radius:2px"></div><div style="width:45%;height:3px;background:#252537;border-radius:2px"></div></div>
+<div style="font:700 11.5px 'Nunito',sans-serif;margin-top:7px;color:#f6ce55">Story 9:16 ✓</div>
+</div>
+<div style="text-align:center">
+<div style="width:96px;height:130px;border-radius:6px;background:#f5efe2;padding:9px;display:flex;flex-direction:column;gap:4px;border:1px solid #d8ccb4"><div style="font-family:'Playfair Display',serif;font-size:7.5px;color:#2e2438">Career check-in</div><div style="width:70%;height:2.5px;background:#d8ccb4"></div><div style="display:flex;gap:3px;margin-top:2px"><div style="width:13px;height:21px;border:1px solid #8a5a3b;border-radius:2px"></div><div style="width:13px;height:21px;border:1px solid #8a5a3b;border-radius:2px"></div><div style="width:13px;height:21px;border:1px solid #8a5a3b;border-radius:2px"></div></div><div style="width:100%;height:2.5px;background:#e5dcc8"></div><div style="width:85%;height:2.5px;background:#e5dcc8"></div><div style="width:90%;height:2.5px;background:#e5dcc8"></div></div>
+<div class="mut" style="font:700 11.5px 'Nunito',sans-serif;margin-top:7px">Journal PDF</div>
+</div>
+</div>
+<div class="gp" style="padding:2px 0">
+<div class="htog" style="border-bottom:1px solid rgba(66,46,107,.4)">Include notes <div class="hpill on"></div></div>
+<div class="htog" style="border-bottom:1px solid rgba(66,46,107,.4)">Card images <div class="hpill on"></div></div>
+<div class="htog">Show date <div class="hpill on"></div></div>
+</div>
+<div class="bgold shimbtn" style="margin-top:auto">Render &amp; share ↥</div>
+</div>
+<div class="hind"></div>
+</div>
+<div class="note">three canvases: social post, story, and an A4 “journal page” PDF for the archive. renders @3x, then the native iOS share sheet. toggles mirror the web app.</div>
+</div>
+
+<div class="dv-opt" id="2g" data-screen-label="2g First-run guided">
+<div class="dv-olabel"><a class="dv-oid" href="#2g">2g</a>First entry — guided (once)</div>
+<div class="hf">
+<div class="sf"></div>
+<div class="hsb"><span>9:41</span><div class="isl"></div><div style="display:flex;align-items:center;gap:6px"><span style="letter-spacing:2px;font-size:11px">•••</span><div class="bat"></div></div></div>
+<div class="hbody" style="gap:16px;align-items:center">
+<div style="display:flex;gap:6px;width:100%"><div style="flex:1;height:4px;border-radius:2px;background:#b385e0"></div><div style="flex:1;height:4px;border-radius:2px;background:#b385e0"></div><div style="flex:1;height:4px;border-radius:2px;background:#252537"></div></div>
+<div class="eyb mut">Your first entry · 2 of 3</div>
+<img class="cimg" src="https://commons.wikimedia.org/wiki/Special:FilePath/RWS_Tarot_18_Moon.jpg" alt="The Moon" style="width:150px;height:250px;border-radius:12px">
+<div class="pf" style="font-size:27px">The Moon</div>
+<div class="seg" style="width:100%"><div class="on">↑ Upright</div><div>↓ Reversed</div></div>
+<div class="gp" style="padding:15px 17px;width:100%"><div style="display:flex;gap:8px;color:#c8a6ee;font:700 13px 'Nunito',sans-serif"><span class="spark">✦</span> Upright, the Moon speaks to…</div><div class="mut" style="font-size:13px;line-height:1.55;margin-top:6px">intuition over certainty — things felt but not yet seen. Notice what surfaces in dreams…</div></div>
+<div class="bpurp" style="width:100%;margin-top:auto">Next — add a reflection</div>
+<div class="mut" style="font-size:12.5px">skip — I know my way</div>
+</div>
+<div class="hind"></div>
+</div>
+<div class="note">shown only for the first-ever entry (teaches orientation + insight). every log after that uses the quick sheet <a class="dv-oid" href="#2b">2b</a>.</div>
+</div>
+
+<div class="dv-opt" id="2h" data-screen-label="2h Onboarding">
+<div class="dv-olabel"><a class="dv-oid" href="#2h">2h</a>Onboarding → reminders</div>
+<div style="display:flex;gap:22px;align-items:flex-start">
+<div class="hf">
+<div class="sf" style="opacity:.55"></div>
+<div class="hsb"><span>9:41</span><div class="isl"></div><div style="display:flex;align-items:center;gap:6px"><span style="letter-spacing:2px;font-size:11px">•••</span><div class="bat"></div></div></div>
+<div class="hbody" style="align-items:center;justify-content:center;gap:18px">
+<div style="width:130px;height:130px;border-radius:50%;border:1px dashed rgba(179,133,224,.45);display:flex;align-items:center;justify-content:center;position:relative"><span style="font-size:52px;color:#b385e0">☾</span><span class="spark" style="position:absolute;top:6px;right:16px;font-size:14px">✦</span><span class="spark" style="position:absolute;bottom:14px;left:10px;font-size:10px;animation-delay:1.2s">✦</span></div>
+<div class="pf gtx" style="font-size:36px">Mystic Ledger</div>
+<div class="mut" style="font-size:14.5px;text-align:center;line-height:1.5;max-width:260px">A quiet ledger for your cards, spreads, and the patterns between them.</div>
+<div style="letter-spacing:5px;font-size:9px;color:#b385e0">● <span style="color:#4a4360">● ●</span></div>
+<div style="width:100%;margin-top:14px;background:#fff;color:#000;font:700 15px 'Nunito',sans-serif;border-radius:15px;padding:15px;text-align:center"> Sign in with Apple</div>
+<div class="bglass" style="width:100%">Continue with email</div>
+<div class="mut" style="font-size:11.5px">syncs with your existing web account</div>
+</div>
+<div class="hind"></div>
+</div>
+<div class="hf">
+<div class="sf" style="opacity:.55"></div>
+<div class="hsb"><span>9:41</span><div class="isl"></div><div style="display:flex;align-items:center;gap:6px"><span style="letter-spacing:2px;font-size:11px">•••</span><div class="bat"></div></div></div>
+<div class="hbody" style="align-items:center;justify-content:center;gap:16px">
+<span style="font-size:44px;color:#f6ce55" class="spark">✦</span>
+<div class="pf" style="font-size:28px;text-align:center">An evening nudge?</div>
+<div class="mut" style="font-size:14.5px;text-align:center;line-height:1.55;max-width:270px">One gentle reminder to pull your card — it's how streaks survive busy weeks.</div>
+<div class="hchip on" style="font-size:14px;padding:9px 20px">9:00 PM ⌄</div>
+<div class="bgold shimbtn" style="width:100%;margin-top:16px">Allow reminders</div>
+<div class="mut" style="font-size:13px">Maybe later</div>
+</div>
+<div class="hind"></div>
+</div>
+</div>
+<div class="note" style="max-width:100%">3 beats, all skippable; the reminder ask comes with context (streak pitch + time picker), never at cold launch. Apple sign-in first, email fallback (existing Supabase accounts).</div>
+</div>
+
+<div class="dv-opt" id="2i" data-screen-label="2i Widgets">
+<div class="dv-olabel"><a class="dv-oid" href="#2i">2i</a>Widgets — home &amp; lock screen</div>
+<div style="display:flex;gap:26px;align-items:flex-end;flex-wrap:wrap">
+<div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+<div class="wtile" style="width:158px;height:158px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px"><div class="cback" style="width:46px;height:76px"><span style="font-size:18px">☾</span></div><div style="font:700 12px 'Nunito',sans-serif">Tap to log</div><div style="font-size:10.5px;color:#a698b3">Sun, Jul 6</div></div>
+<div class="note" style="font-size:14px">small · not-yet-logged</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+<div class="wtile" style="width:329px;height:155px;display:flex;align-items:center;gap:16px;padding:0 20px"><img class="cimg" src="https://commons.wikimedia.org/wiki/Special:FilePath/RWS_Tarot_18_Moon.jpg" alt="The Moon" style="width:62px;height:104px"><div><div style="font:800 10px 'Nunito',sans-serif;letter-spacing:.14em;color:#f6ce55">TODAY'S CARD</div><div style="font-family:'Playfair Display',serif;font-size:21px;margin-top:3px">The Moon ↑</div><div style="font:700 12px 'Nunito',sans-serif;color:#f6ce55;margin-top:6px">✦ 12-day streak</div><div style="font:700 11px 'Nunito',sans-serif;color:#b385e0;margin-top:5px">open journal ›</div></div></div>
+<div class="note" style="font-size:14px">medium · logged state</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+<div style="width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;position:relative;color:#fff"><span style="font-size:22px">☾</span><span style="position:absolute;right:-2px;bottom:-2px;width:18px;height:18px;border-radius:50%;background:#f6ce55;color:#1c1204;font:800 11px 'Nunito',sans-serif;display:flex;align-items:center;justify-content:center">✓</span></div>
+<div class="note" style="font-size:14px">lock screen · logged?</div>
+</div>
+</div>
+<div class="note" style="max-width:100%">widgets deep-link straight into the quick-log sheet <a class="dv-oid" href="#2b">2b</a>. haptics system-wide: soft on save · tick on card flip · rigid on streak milestones.</div>
+</div>
+
+</div>
+<p class="dv-next">Try next: “light theme pass” · “show the spread-building flow hi-fi” · “tweak the export story template” · “package this for Claude Code”</p>
+</section>
+<section class="dv-turn" id="t1" data-screen-label="Turn 1 — lo-fi explorations">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Mystic Ledger iOS — lo-fi explorations. Pick one per group; hi-fi comes next.</span></div>
+
+<div class="grp">A · App structure &amp; navigation</div>
+<div class="dv-opts">
+<div class="dv-opt" id="1a" data-screen-label="1a Classic 5 tabs">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Classic 5-tab bar</div>
+<div class="ph">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="hd">☾ Mystic Ledger</div>
+<div class="sub">Good evening ✦</div>
+<div class="bd">
+<div class="box"><div class="row"><span style="font-size:16px">☀</span><div style="flex:1"><div style="font-size:12px">Today's card</div><div style="font-size:9px;color:#999">not logged yet</div></div><span>→</span></div></div>
+<div class="box"><div class="row"><span style="font-size:16px">▤</span><div style="flex:1"><div style="font-size:12px">New spread</div><div style="font-size:9px;color:#999">3-card, celtic cross…</div></div><span>→</span></div></div>
+<div style="font-size:10px;color:#8a8a8a;margin-top:4px">Recent</div>
+<div class="entry"><div class="tc sm"></div><div style="flex:1"><div class="line" style="width:70%"></div><div class="line" style="width:45%;margin-top:4px"></div></div></div>
+<div class="entry"><div class="tc sm"></div><div style="flex:1"><div class="line" style="width:60%"></div><div class="line" style="width:40%;margin-top:4px"></div></div></div>
+</div>
+<div class="tabbar"><div class="tb on"><span class="ic">⌂</span>Home</div><div class="tb"><span class="ic">☀</span>Card</div><div class="tb"><span class="ic">▤</span>Spreads</div><div class="tb"><span class="ic">▦</span>Journal</div><div class="tb"><span class="ic">⚙</span>More</div></div>
+</div>
+<div class="note">familiar iOS pattern — every area is 1 tap. home stays minimal; streaks &amp; stats live in Journal.</div>
+</div>
+
+<div class="dv-opt" id="1b" data-screen-label="1b 3 tabs + center log">
+<div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>3 tabs + center “log” button</div>
+<div class="ph">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="hd">Today <span style="margin-left:auto;font-size:11px;color:#999">Sun Jul 6 · ◯</span></div>
+<div class="bd dim">
+<div class="box" style="opacity:.45"><div style="font-size:12px">☀ Today's card</div><div style="font-size:9px;color:#999">no card yet</div></div>
+<div class="box" style="opacity:.45"><div style="font-size:12px">▤ Spreads this week: 2</div></div>
+<div class="sheet">
+<div class="grab"></div>
+<div style="font-size:12px;text-align:center">New entry</div>
+<div class="btn g">☀ Log today's card</div>
+<div class="btn">▤ Start a spread</div>
+<div class="btn">✦ Draw from the deck</div>
+</div>
+</div>
+<div class="tabbar"><div class="tb on"><span class="ic">☾</span>Today</div><div class="tb"><span class="ic" style="font-size:20px;color:#7c5cbf">⊕</span></div><div class="tb"><span class="ic">▦</span>Journal</div></div>
+</div>
+<div class="note">one thumb-reach ⊕ for all logging. settings tucked behind the avatar ◯. fewest tabs, clearest job.</div>
+</div>
+
+<div class="dv-opt" id="1c" data-screen-label="1c Journal-first feed">
+<div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Journal-first, single surface</div>
+<div class="ph">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="hd">◯ Ledger <span style="margin-left:auto">⌕</span></div>
+<div class="bd">
+<div class="chips"><span class="chip on">Today</span><span class="chip">Journal</span></div>
+<div class="box" style="border-style:solid;border-color:#c9a227"><div class="row"><div class="tc sm"></div><div><div style="font-size:12px">The Moon · upright</div><div style="font-size:9px;color:#999">today's card ✓</div></div></div></div>
+<div class="entry"><div style="display:flex;gap:3px"><div class="tc sm"></div><div class="tc sm"></div><div class="tc sm"></div></div><div style="flex:1"><div class="line" style="width:75%"></div><div class="line" style="width:50%;margin-top:4px"></div></div></div>
+<div class="entry"><div class="tc sm"></div><div style="flex:1"><div class="line" style="width:65%"></div><div class="line" style="width:40%;margin-top:4px"></div></div></div>
+<div style="position:absolute;right:14px;bottom:18px;width:44px;height:44px;border-radius:50%;background:#7c5cbf;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:2px 3px 0 rgba(0,0,0,.15)">+</div>
+</div>
+</div>
+<div class="note">everything IS the journal — no tab bar. logging is a floating + layer. boldest, most focused.</div>
+</div>
+</div>
+
+<div class="grp">B · The journal</div>
+<div class="dv-opts">
+<div class="dv-opt" id="1d" data-screen-label="1d Timeline feed">
+<div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a>Timeline feed</div>
+<div class="ph">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="hd">Journal <span style="margin-left:auto">⌕</span></div>
+<div class="bd">
+<div class="chips"><span class="chip on">All</span><span class="chip">Cards</span><span class="chip">Spreads</span></div>
+<div style="font-size:10px;color:#8a8a8a">Sun · Jul 6</div>
+<div class="entry"><div class="tc sm"></div><div style="flex:1"><div style="font-size:11px">The Moon · upright</div><div class="line" style="width:80%;margin-top:3px"></div></div></div>
+<div class="entry"><div style="display:flex;gap:3px"><div class="tc sm"></div><div class="tc sm"></div><div class="tc sm"></div></div><div style="flex:1"><div style="font-size:11px">Past · Present · Future</div><div class="line" style="width:60%;margin-top:3px"></div></div></div>
+<div style="font-size:10px;color:#8a8a8a">Sat · Jul 5</div>
+<div class="entry"><div class="tc sm"></div><div style="flex:1"><div style="font-size:11px">Ten of Cups · reversed</div><div class="line" style="width:70%;margin-top:3px"></div></div></div>
+<div style="font-size:10px;color:#8a8a8a">Fri · Jul 4</div>
+<div class="entry"><div class="tc sm"></div><div style="flex:1"><div class="line" style="width:65%"></div></div></div>
+</div>
+<div class="tabbar"><div class="tb"><span class="ic">☾</span>Today</div><div class="tb"><span class="ic">⊕</span></div><div class="tb on"><span class="ic">▦</span>Journal</div></div>
+</div>
+<div class="note">a diary you scroll. cards + spreads interleaved by day; filter chips + search. reads like entries, not data.</div>
+</div>
+
+<div class="dv-opt" id="1e" data-screen-label="1e Calendar-first">
+<div class="dv-olabel"><a class="dv-oid" href="#1e">1e</a>Calendar-first</div>
+<div class="ph">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="hd">‹ July 2026 ›</div>
+<div class="bd">
+<div class="cal">
+<div class="cd">1<span class="dot g"></span></div><div class="cd">2<span class="dot g"></span><span class="dot b"></span></div><div class="cd">3</div><div class="cd">4<span class="dot g"></span></div><div class="cd">5<span class="dot g"></span></div><div class="cd" style="border-color:#7c5cbf;border-width:1.5px">6<span class="dot g"></span><span class="dot b"></span></div><div class="cd">7</div>
+<div class="cd">8</div><div class="cd">9</div><div class="cd">10</div><div class="cd">11</div><div class="cd">12</div><div class="cd">13</div><div class="cd">14</div>
+<div class="cd">15</div><div class="cd">16</div><div class="cd">17</div><div class="cd">18</div><div class="cd">19</div><div class="cd">20</div><div class="cd">21</div>
+</div>
+<div class="row" style="font-size:9px;color:#8a8a8a;gap:12px"><span>● gold = card</span><span style="color:#5b8fc9">● blue = spread</span></div>
+<div class="sheet" style="border-radius:14px;border-bottom:2px solid #2b2b2b;margin-top:6px">
+<div style="font-size:11px">Sun, July 6</div>
+<div class="entry"><div class="tc sm"></div><div style="flex:1"><div style="font-size:10px">The Moon · upright</div></div></div>
+<div class="entry"><div style="display:flex;gap:3px"><div class="tc sm"></div><div class="tc sm"></div><div class="tc sm"></div></div><div style="font-size:10px">3-card spread</div></div>
+</div>
+</div>
+<div class="tabbar"><div class="tb"><span class="ic">☾</span>Today</div><div class="tb"><span class="ic">⊕</span></div><div class="tb on"><span class="ic">▦</span>Journal</div></div>
+</div>
+<div class="note">patterns at a glance — dots per day, tap a day → detail panel. streaks feel visible &amp; earned here.</div>
+</div>
+
+<div class="dv-opt" id="1f" data-screen-label="1f Ledger book">
+<div class="dv-olabel"><a class="dv-oid" href="#1f">1f</a>“Ledger book” hybrid</div>
+<div class="ph">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="hd" style="justify-content:center;font-size:17px">— July —</div>
+<div class="bd">
+<div class="row" style="justify-content:center;gap:14px;font-size:10px;color:#666"><span>✦ 12-day streak</span><span>☀ 24 cards</span><span>▤ 6 spreads</span></div>
+<div class="row" style="justify-content:center;gap:4px"><span style="font-size:7px;color:#7c5cbf">●</span><span style="font-size:7px;color:#ccc">●</span><span style="font-size:7px;color:#ccc">●</span></div>
+<div style="border-top:1px solid #ddd8cc"></div>
+<div class="row" style="border-bottom:1px dotted #ddd8cc;padding:5px 0"><span style="width:34px;font-size:9px;color:#999">Jul 6</span><div class="tc sm"></div><div style="flex:1;font-size:10px">The Moon <span style="color:#999">↑</span></div><span style="font-size:9px;color:#999">✎</span></div>
+<div class="row" style="border-bottom:1px dotted #ddd8cc;padding:5px 0"><span style="width:34px;font-size:9px;color:#999">Jul 6</span><div style="display:flex;gap:2px"><div class="tc sm"></div><div class="tc sm"></div><div class="tc sm"></div></div><div style="flex:1;font-size:10px">P·P·F spread</div><span style="font-size:9px;color:#999">↗</span></div>
+<div class="row" style="border-bottom:1px dotted #ddd8cc;padding:5px 0"><span style="width:34px;font-size:9px;color:#999">Jul 5</span><div class="tc sm"></div><div style="flex:1;font-size:10px">Ten of Cups <span style="color:#999">↓</span></div><span style="font-size:9px;color:#999">✎</span></div>
+<div class="row" style="border-bottom:1px dotted #ddd8cc;padding:5px 0"><span style="width:34px;font-size:9px;color:#999">Jul 4</span><div class="tc sm"></div><div style="flex:1;font-size:10px">The Star <span style="color:#999">↑</span></div><span style="font-size:9px;color:#999">✎</span></div>
+<div style="text-align:center;font-size:9px;color:#999">swipe ← → to flip months</div>
+</div>
+<div class="tabbar"><div class="tb"><span class="ic">☾</span>Today</div><div class="tb"><span class="ic">⊕</span></div><div class="tb on"><span class="ic">▦</span>Journal</div></div>
+</div>
+<div class="note">a month = a page of the ledger. stats header + ruled entry lines; swipe to flip months. strongest brand metaphor.</div>
+</div>
+</div>
+
+<div class="grp">C · Logging a card — flow storyboards</div>
+<div class="dv-opts">
+<div class="dv-opt" id="1g" data-screen-label="1g Quick log sheet">
+<div class="dv-olabel"><a class="dv-oid" href="#1g">1g</a>Quick-log bottom sheet (fastest)</div>
+<div class="flow">
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="hd">Today</div>
+<div class="bd"><div class="box"><div style="font-size:10px">☀ Today's card</div><div style="font-size:8px;color:#999">tap to log</div></div><div class="box" style="opacity:.5"><div style="font-size:10px">▤ New spread</div></div></div>
+<div class="tabbar"><div class="tb on"><span class="ic">☾</span></div><div class="tb"><span class="ic" style="color:#7c5cbf">⊕</span></div><div class="tb"><span class="ic">▦</span></div></div>
+</div>
+<div class="arr">→</div>
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="bd dim">
+<div class="sheet">
+<div class="grab"></div>
+<div class="field">⌕ the moo|</div>
+<div class="entry" style="padding:4px 6px"><div class="tc sm" style="width:18px;height:28px"></div><div style="font-size:9px">The Moon</div></div>
+<div class="chips"><span class="chip on">↑ upright</span><span class="chip">↓ reversed</span></div>
+<div class="field" style="height:34px">notes…</div>
+<div class="btn g" style="font-size:9px">Save · ✦</div>
+</div>
+</div>
+</div>
+<div class="arr">→</div>
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="hd">Today</div>
+<div class="bd">
+<div class="box" style="border-style:solid;border-color:#c9a227"><div class="row"><div class="tc sm"></div><div><div style="font-size:10px">The Moon ↑</div><div style="font-size:8px;color:#999">logged ✓</div></div></div></div>
+<div class="chip" style="align-self:center">✓ saved — soft haptic</div>
+<div class="box" style="border-color:#c8bfe0"><div style="font-size:9px;color:#7c5cbf">✦ AI insight — tap to expand</div></div>
+</div>
+<div class="tabbar"><div class="tb on"><span class="ic">☾</span></div><div class="tb"><span class="ic">⊕</span></div><div class="tb"><span class="ic">▦</span></div></div>
+</div>
+</div>
+<div class="note" style="max-width:100%">10-second log for physical-deck users. AI insight loads collapsed AFTER save — never blocks the flow.</div>
+</div>
+
+<div class="dv-opt" id="1h" data-screen-label="1h Draw mode">
+<div class="dv-olabel"><a class="dv-oid" href="#1h">1h</a>In-app draw (shuffle + flip)</div>
+<div class="flow">
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="hd">Draw</div>
+<div class="bd" style="align-items:center;justify-content:center">
+<div style="position:relative;width:80px;height:70px"><div class="tc" style="position:absolute;left:0;top:8px;transform:rotate(-14deg)"></div><div class="tc" style="position:absolute;left:23px;top:0"></div><div class="tc" style="position:absolute;left:46px;top:8px;transform:rotate(14deg)"></div></div>
+<div style="font-size:9px;color:#999;text-align:center">deck shuffles — cards drift<br>with device motion</div>
+<div class="btn p" style="font-size:9px">Hold to draw</div>
+</div>
+</div>
+<div class="arr">→</div>
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="bd" style="align-items:center;justify-content:center">
+<div class="tc" style="width:70px;height:112px"></div>
+<div style="font-size:11px">The Moon</div>
+<div class="chips"><span class="chip on">↑ upright</span></div>
+<div style="font-size:8.5px;color:#999;text-align:center">3D flip reveal ·<br>crisp haptic tick</div>
+</div>
+</div>
+<div class="arr">→</div>
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="hd" style="font-size:10px">Journal it</div>
+<div class="bd">
+<div class="row"><div class="tc sm"></div><div style="font-size:10px">The Moon ↑</div></div>
+<div class="box" style="border-color:#c8bfe0"><div style="font-size:9px;color:#7c5cbf">✦ meaning — collapsed</div></div>
+<div class="field" style="height:44px">what does it stir up?…</div>
+<div class="btn g" style="font-size:9px">Save to ledger</div>
+<div style="font-size:9px;color:#999;text-align:center">or draw again ↺</div>
+</div>
+</div>
+</div>
+<div class="note" style="max-width:100%">for deck-less moments. optional entry point next to manual log (per your answer: manual stays primary).</div>
+</div>
+
+<div class="dv-opt" id="1i" data-screen-label="1i Guided stepper">
+<div class="dv-olabel"><a class="dv-oid" href="#1i">1i</a>Guided 3-step (mirrors web)</div>
+<div class="flow">
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="hd" style="font-size:10px">Log card · 1/3</div>
+<div class="bd">
+<div class="field">⌕ search 78 cards</div>
+<div class="entry" style="padding:3px 6px"><div style="font-size:9px">The Magician</div></div>
+<div class="entry" style="padding:3px 6px;border-color:#7c5cbf"><div style="font-size:9px">The Moon ✓</div></div>
+<div class="entry" style="padding:3px 6px"><div style="font-size:9px">The Star</div></div>
+<div class="btn p" style="font-size:9px;margin-top:auto">Next</div>
+</div>
+</div>
+<div class="arr">→</div>
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="hd" style="font-size:10px">Orientation · 2/3</div>
+<div class="bd">
+<div class="row" style="justify-content:center"><div class="tc"></div></div>
+<div class="chips" style="justify-content:center"><span class="chip on">↑ upright</span><span class="chip">↓ reversed</span></div>
+<div class="box" style="border-color:#c8bfe0"><div style="font-size:9px;color:#7c5cbf">✦ AI insight — tap to expand</div></div>
+<div class="btn p" style="font-size:9px;margin-top:auto">Next</div>
+</div>
+</div>
+<div class="arr">→</div>
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="hd" style="font-size:10px">Reflect · 3/3</div>
+<div class="bd">
+<div class="field" style="height:70px">notes &amp; reflections…</div>
+<div style="font-size:8.5px;color:#999">prompt: where does this show up in your day?</div>
+<div class="btn g" style="font-size:9px;margin-top:auto">Save pull</div>
+</div>
+</div>
+</div>
+<div class="note" style="max-width:100%">most deliberate; good for beginners but 3 screens every day may wear thin. could be a “guided mode” toggle.</div>
+</div>
+</div>
+
+<div class="grp">D · Spread export — the hero feature</div>
+<div class="dv-opts">
+<div class="dv-opt" id="1j" data-screen-label="1j Template picker export">
+<div class="dv-olabel"><a class="dv-oid" href="#1j">1j</a>Template picker → share</div>
+<div class="flow">
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="hd" style="font-size:10px">Career check-in</div>
+<div class="bd">
+<div style="font-size:8px;color:#999">Jul 6 · 3-card spread</div>
+<div class="row" style="justify-content:center;gap:6px"><div class="tc"></div><div class="tc"></div><div class="tc" style="transform:rotate(180deg)"></div></div>
+<div class="line" style="width:80%"></div>
+<div class="line" style="width:60%"></div>
+<div class="btn p" style="font-size:9px;margin-top:auto">↥ Export</div>
+</div>
+</div>
+<div class="arr">→</div>
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="hd" style="font-size:10px">Choose a template</div>
+<div class="bd">
+<div class="row" style="gap:6px;justify-content:center">
+<div style="text-align:center"><div class="img" style="width:44px;height:44px">1:1</div><div style="font-size:8px">Social</div></div>
+<div style="text-align:center"><div class="img" style="width:32px;height:56px;border-color:#7c5cbf">9:16</div><div style="font-size:8px;color:#7c5cbf">Story ✓</div></div>
+<div style="text-align:center"><div class="img" style="width:40px;height:52px">A4</div><div style="font-size:8px">Journal PDF</div></div>
+</div>
+<div class="tog">include notes <span class="pill on"></span></div>
+<div class="tog">card images <span class="pill on"></span></div>
+<div class="tog">show date <span class="pill on"></span></div>
+<div class="btn p" style="font-size:9px;margin-top:auto">Continue</div>
+</div>
+</div>
+<div class="arr">→</div>
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="bd dim">
+<div class="img" style="height:110px;margin:4px 0">rendered graphic</div>
+<div class="sheet">
+<div class="grab"></div>
+<div style="font-size:9px">iOS share sheet</div>
+<div class="row" style="gap:6px"><div class="sw" style="background:#ddd"></div><div class="sw" style="background:#ddd"></div><div class="sw" style="background:#ddd"></div><div class="sw" style="background:#ddd"></div></div>
+<div class="btn" style="font-size:9px">Save Image</div>
+<div class="btn" style="font-size:9px">Save to Files (PDF)</div>
+</div>
+</div>
+</div>
+</div>
+<div class="note" style="max-width:100%">canvas first: Social 1:1, Story 9:16, or an A4 “journal page” PDF for the archive. toggles match the web app.</div>
+</div>
+
+<div class="dv-opt" id="1k" data-screen-label="1k Live preview export">
+<div class="dv-olabel"><a class="dv-oid" href="#1k">1k</a>Live preview, one screen</div>
+<div class="flow">
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="hd" style="font-size:10px">‹ Share spread</div>
+<div class="bd">
+<div class="img" style="flex:1">live preview<br>updates as you toggle</div>
+<div class="chips" style="justify-content:center"><span class="chip on">1:1</span><span class="chip">9:16</span><span class="chip">PDF</span></div>
+<div class="chips" style="justify-content:center"><span class="chip on">theme: cosmic</span><span class="chip">parchment</span></div>
+<div class="tog">notes <span class="pill on"></span></div>
+<div class="btn p" style="font-size:9px">↥ Share</div>
+</div>
+</div>
+<div class="arr">→</div>
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="bd dim">
+<div class="sheet" style="margin-top:auto">
+<div class="grab"></div>
+<div style="font-size:9px">share sheet</div>
+<div class="row" style="gap:6px"><div class="sw" style="background:#ddd"></div><div class="sw" style="background:#ddd"></div><div class="sw" style="background:#ddd"></div></div>
+<div class="btn" style="font-size:9px">Save Image / PDF</div>
+</div>
+</div>
+</div>
+</div>
+<div class="note" style="max-width:100%">fewer steps: format + theme chips live over an always-visible preview. every change re-renders instantly.</div>
+</div>
+</div>
+
+<div class="grp">E · Visual direction riffs (same arcana soul)</div>
+<div class="dv-opts">
+<div class="dv-opt" id="1l" data-screen-label="1l Cosmic glass">
+<div class="dv-olabel"><a class="dv-oid" href="#1l">1l</a>Cosmic glass — refined current</div>
+<div class="stile" style="background:#12101c;color:#e8e4f2">
+<div class="row"><div class="sw" style="background:#12101c;border-color:#555"></div><div class="sw" style="background:#a78bda"></div><div class="sw" style="background:#e5c15e"></div><div class="sw" style="background:#6fa7d8"></div></div>
+<div style="font-size:18px;font-family:Georgia,serif">Playfair Display</div>
+<div style="font-size:11px;color:#9a92b0">Nunito body · deep ink · subtle starfield</div>
+<div style="border:1px solid rgba(167,139,218,.35);border-radius:10px;padding:10px;background:rgba(167,139,218,.08);backdrop-filter:blur(4px)"><div class="row"><div class="tc sm" style="border-color:#e5c15e;background:rgba(229,193,94,.15)"></div><div style="font-size:11px">frosted glass tile<br><span style="font-size:9px;color:#9a92b0">gold = daily card only</span></div></div></div>
+</div>
+<div class="note">what you have, tightened: fewer glows, frosted tab bar, gold reserved for the daily-card moments.</div>
+</div>
+
+<div class="dv-opt" id="1m" data-screen-label="1m Parchment ledger">
+<div class="dv-olabel"><a class="dv-oid" href="#1m">1m</a>Parchment ledger</div>
+<div class="stile" style="background:#f5efe2;color:#2e2438">
+<div class="row"><div class="sw" style="background:#f5efe2"></div><div class="sw" style="background:#2e2438"></div><div class="sw" style="background:#8a5a3b"></div><div class="sw" style="background:#7c5cbf"></div></div>
+<div style="font-size:18px;font-family:Georgia,serif">Cormorant / EB Garamond</div>
+<div style="font-size:11px;color:#7a6f63">light-first · ink ruling lines · sepia</div>
+<div style="border:1px solid #d8ccb4;border-radius:10px;padding:10px;background:#fbf7ee"><div class="row"><div class="tc sm" style="border-color:#8a5a3b"></div><div style="font-size:11px">paper card tile<br><span style="font-size:9px;color:#9a8d7c">wax-seal accent stamps</span></div></div></div>
+</div>
+<div class="note">the “archival ledger” read literally — daylight-friendly, journal-like. dark cosmic becomes the alt theme.</div>
+</div>
+
+<div class="dv-opt" id="1n" data-screen-label="1n Ink and gold">
+<div class="dv-olabel"><a class="dv-oid" href="#1n">1n</a>Ink &amp; gold foil</div>
+<div class="stile" style="background:#0d0c10;color:#f0ecf5">
+<div class="row"><div class="sw" style="background:#0d0c10;border-color:#444"></div><div class="sw" style="background:#c9a227"></div><div class="sw" style="background:#f0ecf5"></div></div>
+<div style="font-size:18px;font-family:Georgia,serif">Marcellus / Cinzel</div>
+<div style="font-size:11px;color:#8f8a99">near-black · hairline gold rules · no blur</div>
+<div style="border:1px solid rgba(201,162,39,.5);border-radius:10px;padding:10px"><div class="row"><div class="tc sm" style="border-color:#c9a227;background:none"></div><div style="font-size:11px">foil-stamped tile<br><span style="font-size:9px;color:#8f8a99">flat, high contrast, quiet</span></div></div></div>
+</div>
+<div class="note">most minimal: drops glassmorphism for engraved-tarot-deck austerity. striking exports.</div>
+</div>
+</div>
+
+<div class="grp">F · Onboarding · widgets · notifications</div>
+<div class="dv-opts">
+<div class="dv-opt" id="1o" data-screen-label="1o Onboarding">
+<div class="dv-olabel"><a class="dv-oid" href="#1o">1o</a>Onboarding → Apple sign-in → reminder</div>
+<div class="flow">
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="bd" style="align-items:center;justify-content:center">
+<div style="font-size:30px">☾</div>
+<div style="font-size:13px">Mystic Ledger</div>
+<div style="font-size:9px;color:#999;text-align:center">a quiet place to record<br>cards &amp; notice patterns</div>
+<div class="row" style="gap:4px"><span style="font-size:7px;color:#7c5cbf">●</span><span style="font-size:7px;color:#ccc">●</span><span style="font-size:7px;color:#ccc">●</span></div>
+</div>
+</div>
+<div class="arr">→</div>
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="bd" style="justify-content:center">
+<div class="btn" style="background:#2b2b2b;color:#fff;font-size:9px"> Sign in with Apple</div>
+<div class="btn" style="font-size:9px">Continue with email</div>
+<div style="font-size:8px;color:#999;text-align:center">syncs with your existing<br>web account (Supabase)</div>
+</div>
+</div>
+<div class="arr">→</div>
+<div class="ph-s">
+<div class="sb"><span>9:41</span><span>●●●</span></div>
+<div class="bd" style="align-items:center;justify-content:center">
+<div style="font-size:20px">🔔</div>
+<div style="font-size:10px;text-align:center">An evening nudge?</div>
+<div style="font-size:8.5px;color:#999;text-align:center">“your ledger is open” · pick a time ·<br>protects the streak</div>
+<div class="btn p" style="font-size:9px">Allow reminders</div>
+<div style="font-size:9px;color:#999">maybe later</div>
+</div>
+</div>
+</div>
+<div class="note" style="max-width:100%">3 beats, skippable. reminder asked WITH context (streak pitch), not at first launch.</div>
+</div>
+
+<div class="dv-opt" id="1p" data-screen-label="1p Widgets">
+<div class="dv-olabel"><a class="dv-oid" href="#1p">1p</a>Home &amp; lock-screen widgets</div>
+<div style="display:flex;gap:14px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+<div style="width:104px;height:104px;border:2px solid #2b2b2b;border-radius:18px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><div class="tc sm"></div><div style="font-size:8.5px">tap → quick log</div></div>
+<div style="font-size:9px;color:#8a8a8a">small · today's card</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+<div style="width:200px;height:104px;border:2px solid #2b2b2b;border-radius:18px;background:#fff;display:flex;align-items:center;gap:10px;padding:0 12px"><div class="tc"></div><div><div style="font-size:10px">The Moon ↑</div><div style="font-size:8.5px;color:#999">✦ 12-day streak</div><div style="font-size:8px;color:#7c5cbf">open journal →</div></div></div>
+<div style="font-size:9px;color:#8a8a8a">medium · card + streak</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+<div style="width:56px;height:56px;border:2px solid #2b2b2b;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:16px">☾</div>
+<div style="font-size:9px;color:#8a8a8a">lock screen<br>· logged? ✓/○</div>
+</div>
+</div>
+<div class="note" style="max-width:100%">widgets deep-link into the quick-log sheet (<a class="dv-oid" href="#1g">1g</a>). haptics: soft on save, tick on card flip, rigid on streak milestone.</div>
+</div>
+</div>
+
+<p class="dv-next">Try next: “hi-fi <a class="dv-oid" href="#1b">1b</a> with journal <a class="dv-oid" href="#1f">1f</a> and style <a class="dv-oid" href="#1l">1l</a>” · “merge <a class="dv-oid" href="#1e">1e</a> + <a class="dv-oid" href="#1d">1d</a> into one journal” · “more export template ideas”</p>
+</section>
+</x-dc>
+</body>
+</html>
