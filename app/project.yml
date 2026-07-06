@@ -10,7 +10,7 @@ settings:
     MARKETING_VERSION: "1.0.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "5.9"
-    DEVELOPMENT_TEAM: "" # <- set your Apple Developer team id
+    DEVELOPMENT_TEAM: "" # <- set your team in Xcode's Signing & Capabilities tab
     CODE_SIGN_STYLE: Automatic
 
 packages:
@@ -27,34 +27,46 @@ targets:
     dependencies:
       - package: Supabase
         product: Supabase
-      - target: ArcanaWidgets
     settings:
       base:
+        # Change this to something unique to you, e.g. com.isa.arcana
         PRODUCT_BUNDLE_IDENTIFIER: com.arcana.app
         INFOPLIST_FILE: Arcana/Resources/Info.plist
         ENABLE_USER_SCRIPT_SANDBOXING: "YES"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        CODE_SIGN_ENTITLEMENTS: Arcana/Resources/Arcana.entitlements
-    entitlements:
-      path: Arcana/Resources/Arcana.entitlements
-      properties:
-        com.apple.security.application-groups:
-          - group.com.arcana.shared
-        com.apple.developer.applesignin:
-          - Default
 
-  ArcanaWidgets:
-    type: app-extension
-    platform: iOS
-    sources:
-      - path: ArcanaWidgets
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.arcana.app.widgets
-        INFOPLIST_FILE: ArcanaWidgets/Info.plist
-        CODE_SIGN_ENTITLEMENTS: ArcanaWidgets/ArcanaWidgets.entitlements
-    entitlements:
-      path: ArcanaWidgets/ArcanaWidgets.entitlements
-      properties:
-        com.apple.security.application-groups:
-          - group.com.arcana.shared
+# ---------------------------------------------------------------------------
+# Widgets, App Groups and Sign in with Apple need a PAID Apple Developer
+# account. They're disabled here so the app installs on a free/personal team.
+#
+# To re-enable on a paid account:
+#   1. Uncomment the `entitlements` block below and the ArcanaWidgets target.
+#   2. Add `- target: ArcanaWidgets` to the Arcana `dependencies` list.
+#   3. Add `CODE_SIGN_ENTITLEMENTS: Arcana/Resources/Arcana.entitlements` to
+#      the Arcana `settings.base`.
+#   4. Re-run `xcodegen generate`.
+#
+#    entitlements:
+#      path: Arcana/Resources/Arcana.entitlements
+#      properties:
+#        com.apple.security.application-groups:
+#          - group.com.arcana.shared
+#        com.apple.developer.applesignin:
+#          - Default
+#
+#  ArcanaWidgets:
+#    type: app-extension
+#    platform: iOS
+#    sources:
+#      - path: ArcanaWidgets
+#    settings:
+#      base:
+#        PRODUCT_BUNDLE_IDENTIFIER: com.arcana.app.widgets
+#        INFOPLIST_FILE: ArcanaWidgets/Info.plist
+#        CODE_SIGN_ENTITLEMENTS: ArcanaWidgets/ArcanaWidgets.entitlements
+#    entitlements:
+#      path: ArcanaWidgets/ArcanaWidgets.entitlements
+#      properties:
+#        com.apple.security.application-groups:
+#          - group.com.arcana.shared
+# ---------------------------------------------------------------------------

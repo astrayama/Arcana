@@ -35,12 +35,24 @@ xcodegen generate        # produces Arcana.xcodeproj
 open Arcana.xcodeproj
 ```
 
-Set your development team in the project settings (or `project.yml` →
-`DEVELOPMENT_TEAM`), then build & run the `Arcana` scheme.
+In Xcode's **Signing & Capabilities** tab, pick your team, then build & run the
+`Arcana` scheme. The Supabase SPM package resolves on first open.
 
-> The Supabase SPM package resolves on first open. Widgets require the
-> `group.com.arcana.shared` app group on both targets (already configured —
-> Xcode will register it with your team automatically).
+> **Free / personal Apple accounts:** the project ships configured for a free
+> team — a single app target with **no widgets, App Group, or Sign in with
+> Apple** (all three require the paid Developer Program, and a personal team
+> can't provision them — installing an app that declares them fails with
+> `CoreDeviceError 3002`). The app is fully functional this way; it persists to
+> its own container and runs the seeded local ledger.
+>
+> If the bundle ID `com.arcana.app` is rejected, change
+> `PRODUCT_BUNDLE_IDENTIFIER` in `project.yml` to something unique (e.g.
+> `com.<you>.arcana`) and re-run `xcodegen generate`.
+
+> **Paid Developer accounts:** to turn on widgets, App Groups and Sign in with
+> Apple, uncomment the marked blocks in `project.yml` (instructions inline) and
+> re-run `xcodegen generate`. The widget + entitlements source is already in the
+> repo under `ArcanaWidgets/` and `Arcana/Resources/*.entitlements`.
 
 ### Card art & fonts (optional but recommended)
 
