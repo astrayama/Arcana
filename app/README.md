@@ -71,8 +71,14 @@ them the app falls back to the system serif/rounded designs.
 
 ## Supabase (sync + auth)
 
-The app runs immediately in **local-ledger mode** (seeded demo data, no account).
-To wire it to your existing web app's Supabase project:
+The app runs in **local-ledger mode** by default (seeded demo data, no account,
+no network). The Supabase Swift package is currently **not linked**, so sync is
+off — this keeps the build free of SPM-resolution friction.
+
+**To turn sync on:** uncomment the `packages` block and the `dependencies` entry
+in `project.yml`, run `xcodegen generate`, and let Xcode resolve the package.
+All the sync/auth code is guarded by `#if canImport(Supabase)` and reactivates
+itself automatically once the package is linked — no source edits needed. Then:
 
 1. Run `supabase/schema.sql` in your project's SQL editor (skip if your web app
    already has equivalent tables — instead adjust the table/column names in

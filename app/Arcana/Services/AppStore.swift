@@ -44,11 +44,20 @@ final class AppStore: ObservableObject {
 
         if let repository {
             self.repository = repository
-        } else if let client = SupabaseService.client {
-            self.repository = SupabaseRepository(client: client)
         } else {
-            self.repository = LocalRepository(seedDemoData: true)
+            self.repository = Self.makeDefaultRepository()
         }
+    }
+
+    /// Uses Supabase sync when the package is linked and configured, otherwise
+    /// the seeded local ledger.
+    private static func makeDefaultRepository() -> ArcanaRepository {
+        #if canImport(Supabase)
+        if let client = SupabaseService.client {
+            return SupabaseRepository(client: client)
+        }
+        #endif
+        return LocalRepository(seedDemoData: true)
     }
 
     // MARK: Loading

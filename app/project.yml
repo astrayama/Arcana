@@ -13,10 +13,16 @@ settings:
     DEVELOPMENT_TEAM: "" # <- set your team in Xcode's Signing & Capabilities tab
     CODE_SIGN_STYLE: Automatic
 
-packages:
-  Supabase:
-    url: https://github.com/supabase/supabase-swift
-    from: "2.5.1"
+# Supabase sync is temporarily disabled so the app builds & runs immediately in
+# local mode. To turn sync back on: uncomment the `packages` block and the
+# `dependencies` entry below, re-run `xcodegen generate`, and let Xcode resolve.
+# The sync code is guarded by `#if canImport(Supabase)` and reactivates itself
+# once the package is linked — no source changes needed.
+#
+# packages:
+#   Supabase:
+#     url: https://github.com/supabase/supabase-swift
+#     from: "2.5.1"
 
 targets:
   Arcana:
@@ -24,9 +30,9 @@ targets:
     platform: iOS
     sources:
       - path: Arcana
-    dependencies:
-      - package: Supabase
-        product: Supabase
+    # dependencies:
+    #   - package: Supabase
+    #     product: Supabase
     settings:
       base:
         # A fresh, unique bundle ID → a clean personal-team provisioning profile.

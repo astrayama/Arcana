@@ -1,3 +1,6 @@
+// Compiles only when the Supabase package is linked. Without it the app runs on
+// LocalRepository (see AppStore) — nothing here is referenced outside this guard.
+#if canImport(Supabase)
 import Foundation
 import Supabase
 
@@ -111,3 +114,5 @@ final class SupabaseRepository: ArcanaRepository {
         try await client.from("spreads").delete().eq("id", value: id).execute()
     }
 }
+
+#endif
