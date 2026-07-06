@@ -1,0 +1,20 @@
+# Xcode
+app/Arcana.xcodeproj/
+app/*.xcworkspace/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+
+# Secrets — never commit Supabase keys
+app/Arcana/Resources/Secrets.plist
+
+# Fetched assets (re-run app/scripts/fetch-card-art.sh)
+app/Arcana/Resources/Assets.xcassets/card-*.imageset/
+app/Arcana/Resources/Fonts/
+
+# SPM
+.build/
+.swiftpm/
+
+# macOS
+.DS_Store
