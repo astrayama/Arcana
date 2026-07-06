@@ -145,10 +145,16 @@ struct SpreadBuilderFlow: View {
                 }
             }
             ForEach(customPositions.indices, id: \.self) { i in
-                TextField("Position name", text: $customPositions[i])
-                    .bodyFont(13)
-                    .foregroundStyle(Arcana.Palette.text)
-                    .glassField()
+                TextField("Position name", text: Binding(
+                    get: { i < customPositions.count ? customPositions[i] : "" },
+                    set: { newValue in
+                        guard i < customPositions.count else { return }
+                        customPositions[i] = newValue
+                    }
+                ))
+                .bodyFont(13)
+                .foregroundStyle(Arcana.Palette.text)
+                .glassField()
             }
         }
     }

@@ -75,8 +75,13 @@ final class SessionStore: ObservableObject {
     func signUp(email: String, password: String) async {
         guard let client else { return }
         do {
-            try await client.auth.signUp(email: email, password: password)
-            state = .signedIn
+            let response = try await client.auth.signUp(email: email, password: password)
+            if response.session != nil {
+                state = .signedIn
+            } else {
+                // Email confirmation is on: no session until the link is tapped.
+                errorMessage = "Almost there — confirm the email we just sent, then sign in."
+            }
         } catch {
             errorMessage = error.localizedDescription
         }

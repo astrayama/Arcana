@@ -3,7 +3,7 @@ import SwiftUI
 
 // MARK: - Shared snapshot (written by the app into the app group)
 
-private struct Snapshot: Codable {
+struct Snapshot: Codable {
     var date: Date
     var cardID: String?
     var cardName: String?

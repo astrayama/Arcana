@@ -131,34 +131,38 @@ struct ExportView: View {
         }
     }
 
-    @MainActor
     private func render() {
         rendering = true
-        defer { rendering = false }
+        Task { @MainActor in
+            // Let SwiftUI paint the "Rendering…" state before the synchronous
+            // ImageRenderer work blocks the main thread.
+            await Task.yield()
+            defer { rendering = false }
 
-        let renderer = ImageRenderer(content: canvasView(for: template))
-        renderer.proposedSize = ProposedViewSize(template.size)
+            let renderer = ImageRenderer(content: canvasView(for: template))
+            renderer.proposedSize = ProposedViewSize(template.size)
 
-        switch template {
-        case .post, .story:
-            renderer.scale = 3   // @3x, per the wireframe note
-            guard let image = renderer.uiImage else { return }
-            Haptics.success()
-            shareItems = [image]
+            switch template {
+            case .post, .story:
+                renderer.scale = 3   // @3x, per the wireframe note
+                guard let image = renderer.uiImage else { return }
+                Haptics.success()
+                shareItems = [image]
 
-        case .pdf:
-            let url = FileManager.default.temporaryDirectory
-                .appendingPathComponent("Arcana — \(sanitizedTitle).pdf")
-            var box = CGRect(origin: .zero, size: template.size)
-            guard let ctx = CGContext(url as CFURL, mediaBox: &box, nil) else { return }
-            renderer.render { _, renderInContext in
-                ctx.beginPDFPage(nil)
-                renderInContext(ctx)
-                ctx.endPDFPage()
-                ctx.closePDF()
+            case .pdf:
+                let url = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("Arcana — \(sanitizedTitle).pdf")
+                var box = CGRect(origin: .zero, size: template.size)
+                guard let ctx = CGContext(url as CFURL, mediaBox: &box, nil) else { return }
+                renderer.render { _, renderInContext in
+                    ctx.beginPDFPage(nil)
+                    renderInContext(ctx)
+                    ctx.endPDFPage()
+                    ctx.closePDF()
+                }
+                Haptics.success()
+                shareItems = [url]
             }
-            Haptics.success()
-            shareItems = [url]
         }
     }
 
