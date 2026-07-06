@@ -232,9 +232,13 @@ private struct InsightRow: View {
             withAnimation(.snappy(duration: 0.3)) { expanded.toggle() }
             if insight == nil {
                 Task {
-                    insight = pull.insight ?? await InsightService.insight(
-                        for: card, orientation: pull.orientation, note: pull.note
-                    )
+                    if let cached = pull.insight {
+                        insight = cached
+                    } else {
+                        insight = await InsightService.insight(
+                            for: card, orientation: pull.orientation, note: pull.note
+                        )
+                    }
                 }
             }
         }
