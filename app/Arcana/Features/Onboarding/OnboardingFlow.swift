@@ -127,19 +127,25 @@ private struct SignInPage: View {
                     .foregroundStyle(Arcana.Palette.faint)
                     .multilineTextAlignment(.center)
             } else {
-                SignInWithAppleButton(.signIn) { request in
-                    request.requestedScopes = [.email]
-                } onCompletion: { result in
-                    Task {
-                        await session.signInWithApple(result: result)
-                        if session.state == .signedIn { next() }
+                // Sign in with Apple only when the entitlement is available
+                // (paid Developer Program). Otherwise email is the path.
+                if AppConfig.appleSignInEnabled {
+                    SignInWithAppleButton(.signIn) { request in
+                        request.requestedScopes = [.email]
+                    } onCompletion: { result in
+                        Task {
+                            await session.signInWithApple(result: result)
+                            if session.state == .signedIn { next() }
+                        }
                     }
-                }
-                .signInWithAppleButtonStyle(.white)
-                .frame(height: 52)
-                .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
+                    .signInWithAppleButtonStyle(.white)
+                    .frame(height: 52)
+                    .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
 
-                GlassButton(title: "Continue with email") { showEmailSheet = true }
+                    GlassButton(title: "Continue with email") { showEmailSheet = true }
+                } else {
+                    GoldButton(title: "Continue with email ✦") { showEmailSheet = true }
+                }
 
                 Text("syncs with your existing web account")
                     .bodyFont(11.5)

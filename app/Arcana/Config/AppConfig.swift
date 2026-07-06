@@ -9,10 +9,15 @@ enum AppConfig {
 
     // MARK: - Supabase
 
-    /// Fill these in (or drop a `Secrets.plist` with `SUPABASE_URL` / `SUPABASE_ANON_KEY`)
-    /// to wire the app to your existing web account's Supabase project.
-    static let supabaseURLString = secret("SUPABASE_URL") ?? "https://YOUR-PROJECT.supabase.co"
-    static let supabaseAnonKey   = secret("SUPABASE_ANON_KEY") ?? "YOUR-ANON-KEY"
+    /// The Supabase project URL and its **publishable** (anon) key. This key is
+    /// designed to ship in client apps — it's protected by row-level security,
+    /// so committing it is fine. To keep it out of git instead, drop a
+    /// `Secrets.plist` with `SUPABASE_URL` / `SUPABASE_ANON_KEY` (it's git-ignored
+    /// and overrides these values).
+    static let supabaseURLString = secret("SUPABASE_URL")
+        ?? "https://zlqkiergmdjphknlqflf.supabase.co"
+    static let supabaseAnonKey = secret("SUPABASE_ANON_KEY")
+        ?? "sb_publishable_-2SR1ehZ7OJw0qHGNfOreA_RxsmQ4Pn"
 
     /// True when real Supabase credentials have been supplied.
     static var hasSupabase: Bool {
@@ -20,6 +25,10 @@ enum AppConfig {
         !supabaseAnonKey.contains("YOUR-ANON-KEY") &&
         URL(string: supabaseURLString) != nil
     }
+
+    /// Sign in with Apple needs the paid Developer Program, so it's off by
+    /// default. Onboarding shows email sign-in only when this is false.
+    static let appleSignInEnabled = false
 
     // MARK: - App group (shared with widgets)
 
