@@ -29,8 +29,9 @@ targets:
         product: Supabase
     settings:
       base:
-        # Change this to something unique to you, e.g. com.isa.arcana
-        PRODUCT_BUNDLE_IDENTIFIER: com.arcana.app
+        # A fresh, unique bundle ID → a clean personal-team provisioning profile.
+        # Change the prefix if you like; keep it unique to your Apple ID.
+        PRODUCT_BUNDLE_IDENTIFIER: com.astrayama.arcana
         INFOPLIST_FILE: Arcana/Resources/Info.plist
         ENABLE_USER_SCRIPT_SANDBOXING: "YES"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
