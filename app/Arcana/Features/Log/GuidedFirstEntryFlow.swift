@@ -63,7 +63,12 @@ struct GuidedFirstEntryFlow: View {
                 .displayFont(25)
                 .foregroundStyle(Arcana.Palette.text)
                 .multilineTextAlignment(.center)
-            CardPicker(selectedCardID: $cardID)
+            CardPicker(selectedCardID: $cardID, onDrawRandom: {
+                withAnimation(.snappy) {
+                    cardID = Deck.all.randomElement()?.id
+                    orientation = Bool.random() ? .reversed : .upright
+                }
+            })
             if cardID != nil {
                 Button {
                     withAnimation(.snappy) { cardID = nil }

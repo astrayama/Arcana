@@ -92,7 +92,7 @@ struct SettingsView: View {
 
     private var remindersPanel: some View {
         VStack(spacing: 0) {
-            Toggle("Evening reminder", isOn: Binding(
+            Toggle("Daily reminder", isOn: Binding(
                 get: { store.remindersEnabled },
                 set: { enabled in
                     store.remindersEnabled = enabled
@@ -141,6 +141,19 @@ struct SettingsView: View {
 
     private var dataPanel: some View {
         VStack(spacing: 0) {
+            Toggle("Sync to Cloud", isOn: Binding(
+                get: { store.syncEnabled },
+                set: { enabled in
+                    store.syncEnabled = enabled
+                }
+            ))
+            .bodyFont(14, weight: .semibold)
+            .foregroundStyle(Arcana.Palette.text)
+            .tint(Arcana.Palette.gold)
+            .padding(.horizontal, 16).padding(.vertical, 10)
+
+            Divider().background(Color(hex: 0x392D53))
+
             if session.state == .demo {
                 Button {
                     confirmErase = true

@@ -38,10 +38,10 @@ struct SpreadBuilderFlow: View {
                                         pickingIndex = pickingIndex == index ? nil : index
                                     }
                                 },
-                                onPick: { cardID in
+                                onPick: { cardID, randomOrientation in
                                     Haptics.tick()
                                     withAnimation(.snappy) {
-                                        placements[index] = (cardID, .upright)
+                                        placements[index] = (cardID, randomOrientation ?? .upright)
                                         pickingIndex = nil
                                     }
                                 },
@@ -125,7 +125,7 @@ struct SpreadBuilderFlow: View {
     private var customEditor: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("POSITIONS")
+                Text("POSITIONS (MAX 20)")
                     .bodyFont(10, weight: .bold)
                     .kerning(1.4)
                     .foregroundStyle(Arcana.Palette.muted)
@@ -138,7 +138,7 @@ struct SpreadBuilderFlow: View {
                     Image(systemName: "minus.circle").foregroundStyle(Arcana.Palette.muted)
                 }
                 Button {
-                    guard customPositions.count < 10 else { return }
+                    guard customPositions.count < 20 else { return }
                     customPositions.append("Card \(customPositions.count + 1)")
                 } label: {
                     Image(systemName: "plus.circle").foregroundStyle(Arcana.Palette.purpleSoft)
@@ -186,7 +186,7 @@ private struct PositionSlot: View {
     let placement: (String, Orientation)?
     let isPicking: Bool
     var onTap: () -> Void
-    var onPick: (String) -> Void
+    var onPick: (String, Orientation?) -> Void
     var onFlip: () -> Void
     var onClear: () -> Void
 
@@ -251,13 +251,22 @@ private struct PositionSlot: View {
             .buttonStyle(.plain)
 
             if isPicking {
-                CardPicker(selectedCardID: Binding(
-                    get: { searchID },
-                    set: { newValue in
-                        if let newValue { onPick(newValue) }
-                        searchID = nil
+                CardPicker(
+                    selectedCardID: Binding(
+                        get: { searchID },
+                        set: { newValue in
+                            if let newValue { onPick(newValue, nil) }
+                            searchID = nil
+                        }
+                    ),
+                    onDrawRandom: {
+                        withAnimation(.snappy) {
+                            if let cardID = Deck.all.randomElement()?.id {
+                                onPick(cardID, Bool.random() ? .reversed : .upright)
+                            }
+                        }
                     }
-                ))
+                )
                 .padding(.horizontal, 13)
                 .padding(.bottom, 12)
                 .transition(.opacity.combined(with: .move(edge: .top)))

@@ -17,7 +17,7 @@ struct Snapshot: Codable {
 
     static func read() -> Snapshot? {
         guard let container = FileManager.default.containerURL(
-                forSecurityApplicationGroupIdentifier: "group.com.arcana.shared"),
+                forSecurityApplicationGroupIdentifier: "group.com.screenseiji.arcana.shared"),
               let data = try? Data(contentsOf: container.appendingPathComponent("widget-snapshot.json"))
         else { return nil }
         let decoder = JSONDecoder()
@@ -37,8 +37,8 @@ struct Entry: TimelineEntry {
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> Entry {
         Entry(date: .now,
-              snapshot: Snapshot(date: .now, cardID: "major-18", cardName: "The Moon",
-                                 orientation: "upright", streak: 12, imageURLString: nil),
+              snapshot: Snapshot(date: .now, cardID: "", cardName: "Card of the Day",
+                                 orientation: "upright", streak: 0, imageURLString: nil),
               cardImage: nil)
     }
 

@@ -32,7 +32,7 @@ enum AppConfig {
 
     // MARK: - App group (shared with widgets)
 
-    static let appGroupIdentifier = "group.com.arcana.shared"
+    static let appGroupIdentifier = "group.com.screenseiji.arcana.shared"
     static let urlScheme = "arcana"
 
     // MARK: - Secrets.plist loader

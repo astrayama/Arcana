@@ -35,7 +35,7 @@ final class LocalRepository: ArcanaRepository {
            let decoded = try? JSONDecoder.arcana.decode(Store.self, from: data) {
             store = decoded
         } else {
-            store = seedDemoData ? Self.demoStore() : Store()
+            store = Store()
             persist()
         }
     }
@@ -81,63 +81,7 @@ final class LocalRepository: ArcanaRepository {
         }
     }
 
-    // MARK: demo seed — mirrors the wireframe journal exactly, relative to today
 
-    private static func demoStore() -> Store {
-        let cal = Calendar.current
-        func day(_ offset: Int, note: String? = nil) -> Date {
-            cal.date(byAdding: .day, value: -offset, to: cal.startOfDay(for: Date()))!
-                .addingTimeInterval(9 * 3600)
-        }
-
-        var pulls: [CardPull] = [
-            CardPull(cardID: "major-18", orientation: .upright,
-                     note: "Strange dreams again — trusting the undercurrent even when the path isn't lit.",
-                     date: day(0)),
-            CardPull(cardID: "cups-10", orientation: .reversed,
-                     note: "Family dinner went sideways — the harmony is there, just out of tune tonight.",
-                     date: day(1)),
-            CardPull(cardID: "major-17", orientation: .upright,
-                     note: "A good omen before the interview.",
-                     date: day(2)),
-            CardPull(cardID: "major-9", orientation: .upright,
-                     note: "",
-                     date: day(3)),
-        ]
-        // Extend the streak back to 12 days, like the wireframe stats header.
-        let filler = ["wands-3", "major-2", "pentacles-9", "swords-6", "major-10",
-                      "cups-2", "wands-11", "major-14"]
-        for (i, id) in filler.enumerated() {
-            pulls.append(CardPull(cardID: id, orientation: i % 3 == 2 ? .reversed : .upright,
-                                  note: "", date: day(4 + i)))
-        }
-
-        let career = Spread(
-            title: "Career check-in",
-            templateID: SpreadTemplate.threeCard.id,
-            templateName: SpreadTemplate.threeCard.name,
-            cards: [
-                SpreadCard(position: "Past", cardID: "major-17", orientation: .upright),
-                SpreadCard(position: "Present", cardID: "major-19", orientation: .upright),
-                SpreadCard(position: "Future", cardID: "cups-10", orientation: .reversed),
-            ],
-            note: "Momentum from past hope into present clarity — but the reversed Ten warns me not to trade home life for the promotion.",
-            date: day(0)
-        )
-        let weekAhead = Spread(
-            title: "Week ahead",
-            templateID: SpreadTemplate.mindBodySpirit.id,
-            templateName: SpreadTemplate.mindBodySpirit.name,
-            cards: [
-                SpreadCard(position: "Mind", cardID: "swords-1", orientation: .upright),
-                SpreadCard(position: "Body", cardID: "pentacles-4", orientation: .reversed),
-                SpreadCard(position: "Spirit", cardID: "major-17", orientation: .upright),
-            ],
-            note: "Clarity up top, loosen the grip, keep the faith.",
-            date: day(6)
-        )
-        return Store(pulls: pulls, spreads: [career, weekAhead])
-    }
 }
 
 // MARK: - Codable helpers

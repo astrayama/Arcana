@@ -174,6 +174,11 @@ private struct TodayCardPanel: View {
                         .bodyFont(13)
                         .foregroundStyle(Arcana.Palette.muted)
                         .padding(.top, 2)
+                    Text(pull.orientation == .upright ? card.uprightKeywords : card.reversedKeywords)
+                        .bodyFont(13)
+                        .foregroundStyle(Arcana.Palette.muted)
+                        .padding(.top, 4)
+                        .lineLimit(2)
                     if !pull.note.isEmpty {
                         Text("“\(pull.note)”")
                             .bodyFont(13)
@@ -209,7 +214,7 @@ private struct InsightRow: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 SparkleText(size: 13, color: Arcana.Palette.purpleSoft)
-                Text("AI insight")
+                Text("Card Meaning")
                     .bodyFont(13, weight: .bold)
                     .foregroundStyle(Arcana.Palette.purpleSoft)
                 Spacer()

@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 
 /// The 3-slot shell from wireframe 1b/2a: Today · center ⊕ log · Journal,
 /// rendered as a floating frosted pill.
@@ -33,6 +34,30 @@ struct RootView: View {
         }
         .sheet(isPresented: $router.showSpreadBuilder) {
             SpreadBuilderFlow()
+        }
+        .onAppear {
+            if !store.hasLoggedFirstEntry {
+                router.showQuickLog = true
+            }
+        }
+        .alert("Are you enjoying Arcana?", isPresented: $store.showReviewPrompt) {
+            Button("Yes, I love it!") {
+                store.hasLeftReview = true
+                store.showReviewPrompt = false
+                if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
+                    SKStoreReviewController.requestReview(in: scene)
+                }
+            }
+            Button("Not really") {
+                store.entriesSinceLastReviewPrompt = 0
+                store.showReviewPrompt = false
+            }
+            Button("Maybe later", role: .cancel) {
+                store.entriesSinceLastReviewPrompt = 0
+                store.showReviewPrompt = false
+            }
+        } message: {
+            Text("Your feedback helps us make the app even better.")
         }
     }
 }
@@ -74,8 +99,8 @@ private struct TabBar: View {
             Capsule()
                 .fill(Color(hex: 0x100E1A).opacity(0.74))
                 .background(Capsule().fill(.ultraThinMaterial).environment(\.colorScheme, .dark))
+                .overlay(Capsule().strokeBorder(Arcana.Palette.glassStroke, lineWidth: 1))
         )
-        .overlay(Capsule().strokeBorder(Arcana.Palette.glassStroke, lineWidth: 1))
         .shadow(color: .black.opacity(0.5), radius: 16, y: 8)
         .padding(.horizontal, 14)
         .padding(.bottom, 4)
@@ -92,7 +117,8 @@ private struct TabBar: View {
                 Text(label).bodyFont(10, weight: .bold)
             }
             .foregroundStyle(isOn ? Arcana.Palette.purple : Arcana.Palette.faint)
-            .frame(width: 84)
+            .frame(width: 84, height: 64)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

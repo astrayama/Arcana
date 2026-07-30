@@ -16,7 +16,7 @@ struct ArcanaApp: App {
                             .font(.system(size: 44))
                             .foregroundStyle(Arcana.Palette.purple)
                     }
-                } else if store.hasOnboarded && session.state != .signedOut {
+                } else if store.hasOnboarded {
                     RootView()
                 } else {
                     // One branch for every pre-app state, so signing in mid-flow

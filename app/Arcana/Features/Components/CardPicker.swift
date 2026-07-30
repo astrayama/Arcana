@@ -4,6 +4,7 @@ import SwiftUI
 /// guided first entry, and the spread builder.
 struct CardPicker: View {
     @Binding var selectedCardID: String?
+    var onDrawRandom: (() -> Void)? = nil
     var placeholder = "Search 78 cards"
 
     @State private var query = ""
@@ -38,6 +39,47 @@ struct CardPicker: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 6) {
+                        if query.isEmpty {
+                            Button {
+                                Haptics.tick()
+                                focused = false
+                                if let onDrawRandom {
+                                    onDrawRandom()
+                                } else {
+                                    withAnimation(.snappy(duration: 0.25)) {
+                                        selectedCardID = Deck.all.randomElement()?.id
+                                    }
+                                }
+                            } label: {
+                                HStack(spacing: 12) {
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                            .fill(Arcana.Palette.gold.opacity(0.15))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                                    .strokeBorder(Arcana.Palette.gold.opacity(0.3), lineWidth: 1)
+                                            )
+                                        Image(systemName: "sparkles")
+                                            .font(.system(size: 14))
+                                            .foregroundStyle(Arcana.Palette.gold)
+                                    }
+                                    .frame(width: 30, height: 50)
+                                    VStack(alignment: .leading, spacing: 1) {
+                                        Text("Draw from deck")
+                                            .bodyFont(14, weight: .bold)
+                                            .foregroundStyle(Arcana.Palette.gold)
+                                        Text("Let fate decide")
+                                            .bodyFont(11.5)
+                                            .foregroundStyle(Arcana.Palette.muted)
+                                    }
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 4)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+
                         ForEach(results.prefix(30)) { card in
                             Button {
                                 Haptics.tick()

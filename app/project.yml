@@ -19,10 +19,10 @@ settings:
 # The sync code is guarded by `#if canImport(Supabase)` and reactivates itself
 # once the package is linked — no source changes needed.
 #
-# packages:
-#   Supabase:
-#     url: https://github.com/supabase/supabase-swift
-#     from: "2.5.1"
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: "2.5.1"
 
 targets:
   Arcana:
@@ -30,17 +30,19 @@ targets:
     platform: iOS
     sources:
       - path: Arcana
-    # dependencies:
-    #   - package: Supabase
-    #     product: Supabase
+    dependencies:
+      - package: Supabase
+        product: Supabase
+      - target: ArcanaWidgets
     settings:
       base:
         # A fresh, unique bundle ID → a clean personal-team provisioning profile.
         # Change the prefix if you like; keep it unique to your Apple ID.
-        PRODUCT_BUNDLE_IDENTIFIER: com.astrayama.arcana
+        PRODUCT_BUNDLE_IDENTIFIER: com.screenseiji.arcana
         INFOPLIST_FILE: Arcana/Resources/Info.plist
         ENABLE_USER_SCRIPT_SANDBOXING: "YES"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_ENTITLEMENTS: Arcana/Resources/Arcana.entitlements
 
 # ---------------------------------------------------------------------------
 # Widgets, App Groups and Sign in with Apple need a PAID Apple Developer
@@ -53,27 +55,27 @@ targets:
 #      the Arcana `settings.base`.
 #   4. Re-run `xcodegen generate`.
 #
-#    entitlements:
-#      path: Arcana/Resources/Arcana.entitlements
-#      properties:
-#        com.apple.security.application-groups:
-#          - group.com.arcana.shared
-#        com.apple.developer.applesignin:
-#          - Default
-#
-#  ArcanaWidgets:
-#    type: app-extension
-#    platform: iOS
-#    sources:
-#      - path: ArcanaWidgets
-#    settings:
-#      base:
-#        PRODUCT_BUNDLE_IDENTIFIER: com.arcana.app.widgets
-#        INFOPLIST_FILE: ArcanaWidgets/Info.plist
-#        CODE_SIGN_ENTITLEMENTS: ArcanaWidgets/ArcanaWidgets.entitlements
-#    entitlements:
-#      path: ArcanaWidgets/ArcanaWidgets.entitlements
-#      properties:
-#        com.apple.security.application-groups:
-#          - group.com.arcana.shared
+    entitlements:
+      path: Arcana/Resources/Arcana.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.screenseiji.arcana.shared
+        com.apple.developer.applesignin:
+          - Default
+
+  ArcanaWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ArcanaWidgets
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.screenseiji.arcana.widgets
+        INFOPLIST_FILE: ArcanaWidgets/Info.plist
+        CODE_SIGN_ENTITLEMENTS: ArcanaWidgets/ArcanaWidgets.entitlements
+    entitlements:
+      path: ArcanaWidgets/ArcanaWidgets.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.screenseiji.arcana.shared
 # ---------------------------------------------------------------------------

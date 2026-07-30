@@ -7,6 +7,7 @@ import QuartzCore
 /// Hold-to-draw fills the ring and the active card flips over with a crisp tick.
 struct DrawView: View {
     @EnvironmentObject private var router: Router
+    @EnvironmentObject private var store: AppStore
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
 
@@ -129,7 +130,7 @@ struct DrawView: View {
 
     private func drawCard() {
         let card = shuffledDeck[deckMotion.activeIndex]
-        let orientation: Orientation = Int.random(in: 0..<3) == 0 ? .reversed : .upright
+        let orientation: Orientation = Bool.random() ? .reversed : .upright
         drawn = (card, orientation)
         phase = .revealing
         flipAngle = 0
@@ -169,14 +170,26 @@ struct DrawView: View {
                     .foregroundStyle(Arcana.Palette.text)
 
                 Chip(label: "\(drawn.orientation.arrow) \(drawn.orientation.label)", isOn: true)
+                
+                Text(drawn.orientation == .upright ? drawn.card.uprightKeywords : drawn.card.reversedKeywords)
+                    .bodyFont(13)
+                    .foregroundStyle(Arcana.Palette.muted)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 30)
 
                 HStack(spacing: 12) {
                     GoldButton(title: "Journal it") {
-                        router.prefillCardID = drawn.card.id
-                        router.prefillOrientation = drawn.orientation
-                        dismiss()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                            router.showQuickLog = true
+                        Task {
+                            if let existing = store.todayPull {
+                                var updated = existing
+                                updated.cardID = drawn.card.id
+                                updated.orientation = drawn.orientation
+                                await store.save(updated)
+                            } else {
+                                let pull = CardPull(cardID: drawn.card.id, orientation: drawn.orientation, note: "", date: Date())
+                                await store.save(pull)
+                            }
+                            dismiss()
                         }
                     }
                     .frame(maxWidth: .infinity)

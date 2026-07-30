@@ -1,7 +1,7 @@
 import Foundation
 import UserNotifications
 
-/// Schedules the single "evening nudge" reminder chosen during onboarding.
+/// Schedules the single "daily nudge" reminder chosen during onboarding.
 enum NotificationService {
 
     static func requestAndSchedule(hour: Int, minute: Int) async -> Bool {
@@ -35,5 +35,5 @@ enum NotificationService {
             .removePendingNotificationRequests(withIdentifiers: [reminderID])
     }
 
-    private static let reminderID = "arcana.evening-reminder"
+    private static let reminderID = "arcana.daily-reminder"
 }

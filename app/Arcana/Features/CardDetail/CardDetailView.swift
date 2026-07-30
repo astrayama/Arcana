@@ -36,12 +36,13 @@ struct CardDetailView: View {
                             .kerning(1.4)
                             .foregroundStyle(Arcana.Palette.muted)
                         NotesEditor(text: noteBinding, prompt: "What did it stir up?…")
+                            .focused($isNoteFocused)
                     }
                     .padding(16)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .glass()
 
-                    InsightDisclosure(title: "AI insight") {
+                    InsightDisclosure(title: "Card Meaning") {
                         await InsightService.insight(
                             for: card, orientation: pull.orientation, note: pull.note
                         )
@@ -61,6 +62,12 @@ struct CardDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
+                    Button {
+                        isNoteFocused = true
+                    } label: {
+                        Label("Edit note", systemImage: "pencil")
+                    }
+                    
                     Button(role: .destructive) {
                         confirmDelete = true
                     } label: {
@@ -101,6 +108,7 @@ struct CardDetailView: View {
     }
 
     @State private var noteDirty = false
+    @FocusState private var isNoteFocused: Bool
 }
 
 extension CardDetailView {

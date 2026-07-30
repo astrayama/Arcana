@@ -145,9 +145,19 @@ struct ExportView: View {
             switch template {
             case .post, .story:
                 renderer.scale = 3   // @3x, per the wireframe note
-                guard let image = renderer.uiImage else { return }
+                guard let image = renderer.uiImage,
+                      let data = image.pngData() else { return }
+
+                let dateStr = Date().formatted(date: .numeric, time: .shortened)
+                    .replacingOccurrences(of: "/", with: "-")
+                    .replacingOccurrences(of: ":", with: ".")
+                
+                let url = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("Arcana-\(dateStr).png")
+                try? data.write(to: url)
+
                 Haptics.success()
-                shareItems = [image]
+                shareItems = [url]
 
             case .pdf:
                 let url = FileManager.default.temporaryDirectory

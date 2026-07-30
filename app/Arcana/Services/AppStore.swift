@@ -22,6 +22,12 @@ final class AppStore: ObservableObject {
     @Published var hasLoggedFirstEntry: Bool {
         didSet { Self.defaults.set(hasLoggedFirstEntry, forKey: "hasLoggedFirstEntry") }
     }
+    @Published var syncEnabled: Bool {
+        didSet {
+            Self.defaults.set(syncEnabled, forKey: "syncEnabled")
+            updateRepository()
+        }
+    }
     @Published var remindersEnabled: Bool {
         didSet { Self.defaults.set(remindersEnabled, forKey: "remindersEnabled") }
     }
@@ -31,6 +37,15 @@ final class AppStore: ObservableObject {
     @Published var reminderMinute: Int {
         didSet { Self.defaults.set(reminderMinute, forKey: "reminderMinute") }
     }
+    
+    @Published var hasLeftReview: Bool {
+        didSet { Self.defaults.set(hasLeftReview, forKey: "hasLeftReview") }
+    }
+    @Published var entriesSinceLastReviewPrompt: Int {
+        didSet { Self.defaults.set(entriesSinceLastReviewPrompt, forKey: "entriesSinceLastReviewPrompt") }
+    }
+    
+    @Published var showReviewPrompt = false
 
     private(set) var repository: ArcanaRepository
 
@@ -41,6 +56,9 @@ final class AppStore: ObservableObject {
         remindersEnabled = d.bool(forKey: "remindersEnabled")
         reminderHour = d.object(forKey: "reminderHour") as? Int ?? 21
         reminderMinute = d.object(forKey: "reminderMinute") as? Int ?? 0
+        syncEnabled = d.bool(forKey: "syncEnabled")
+        hasLeftReview = d.bool(forKey: "hasLeftReview")
+        entriesSinceLastReviewPrompt = d.integer(forKey: "entriesSinceLastReviewPrompt")
 
         if let repository {
             self.repository = repository
@@ -49,15 +67,27 @@ final class AppStore: ObservableObject {
         }
     }
 
-    /// Uses Supabase sync when the package is linked and configured, otherwise
-    /// the seeded local ledger.
+    /// Uses Supabase sync when enabled and configured, otherwise the seeded local ledger.
     private static func makeDefaultRepository() -> ArcanaRepository {
         #if canImport(Supabase)
-        if let client = SupabaseService.client {
+        if Self.defaults.bool(forKey: "syncEnabled"), let client = SupabaseService.client {
             return SupabaseRepository(client: client)
         }
         #endif
-        return LocalRepository(seedDemoData: true)
+        return LocalRepository(seedDemoData: false)
+    }
+
+    private func updateRepository() {
+        #if canImport(Supabase)
+        if syncEnabled, let client = SupabaseService.client {
+            self.repository = SupabaseRepository(client: client)
+        } else {
+            self.repository = LocalRepository(seedDemoData: false)
+        }
+        #else
+        self.repository = LocalRepository(seedDemoData: false)
+        #endif
+        Task { await load() }
     }
 
     // MARK: Loading
@@ -95,6 +125,8 @@ final class AppStore: ObservableObject {
             } else {
                 Haptics.soft()        // soft on save
             }
+            
+            checkReviewPrompt()
         } catch {
             errorMessage = "Couldn't save — \(error.localizedDescription)"
         }
@@ -108,6 +140,8 @@ final class AppStore: ObservableObject {
             spreads.sort { $0.date > $1.date }
             Haptics.soft()
             syncWidgetSnapshot()
+            
+            checkReviewPrompt()
         } catch {
             errorMessage = "Couldn't save — \(error.localizedDescription)"
         }
@@ -126,6 +160,15 @@ final class AppStore: ObservableObject {
             syncWidgetSnapshot()
         } catch {
             errorMessage = "Couldn't delete — \(error.localizedDescription)"
+        }
+    }
+    
+    private func checkReviewPrompt() {
+        if !hasLeftReview {
+            entriesSinceLastReviewPrompt += 1
+            if entriesSinceLastReviewPrompt >= 3 {
+                showReviewPrompt = true
+            }
         }
     }
 

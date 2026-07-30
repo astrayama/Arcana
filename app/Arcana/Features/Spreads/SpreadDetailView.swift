@@ -6,7 +6,7 @@ struct SpreadDetailView: View {
     @EnvironmentObject private var store: AppStore
     @Environment(\.dismiss) private var dismiss
 
-    let spread: Spread
+    @State var spread: Spread
 
     @State private var appeared = false
     @State private var confirmDelete = false
@@ -17,7 +17,7 @@ struct SpreadDetailView: View {
             VStack(alignment: .leading, spacing: 14) {
                 header
                 cardsPanel
-                if !spread.note.isEmpty { notesPanel }
+                notesPanel
                 InsightDisclosure(title: "Full spread insight") {
                     await InsightService.insight(for: spread)
                 }
@@ -45,6 +45,7 @@ struct SpreadDetailView: View {
                 }
             }
         }
+        .onDisappear { flushNoteIfNeeded() }
         .sheet(isPresented: $showExport) {
             ExportView(spread: spread)
         }
@@ -72,6 +73,12 @@ struct SpreadDetailView: View {
             }
             Spacer()
             Menu {
+                Button {
+                    isNoteFocused = true
+                } label: {
+                    Label("Edit note", systemImage: "pencil")
+                }
+                
                 Button(role: .destructive) { confirmDelete = true } label: {
                     Label("Delete spread", systemImage: "trash")
                 }
@@ -136,19 +143,36 @@ struct SpreadDetailView: View {
         .glass()
     }
 
+    @FocusState private var isNoteFocused: Bool
+    @State private var noteDirty = false
+
+    private var noteBinding: Binding<String> {
+        Binding(get: { spread.note }) { newValue in
+            spread.note = newValue
+            noteDirty = true
+        }
+    }
+
     private var notesPanel: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("NOTES")
                 .bodyFont(10, weight: .bold)
                 .kerning(1.4)
                 .foregroundStyle(Arcana.Palette.muted)
-            Text(spread.note)
-                .bodyFont(13.5)
-                .foregroundStyle(Arcana.Palette.text)
-                .lineSpacing(5)
+            NotesEditor(text: noteBinding, prompt: "What does this spread reveal?…")
+                .focused($isNoteFocused)
         }
-        .padding(.horizontal, 17).padding(.vertical, 15)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .glass()
+    }
+}
+
+extension SpreadDetailView {
+    /// Persist pending note edits when leaving the screen.
+    func flushNoteIfNeeded() {
+        guard noteDirty else { return }
+        let snapshot = spread
+        Task { await store.save(snapshot) }
     }
 }

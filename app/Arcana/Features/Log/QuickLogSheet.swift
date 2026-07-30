@@ -27,7 +27,12 @@ struct QuickLogSheet: View {
                 .displayFont(24)
                 .foregroundStyle(Arcana.Palette.text)
 
-            CardPicker(selectedCardID: $cardID)
+            CardPicker(selectedCardID: $cardID, onDrawRandom: {
+                withAnimation(.snappy) {
+                    cardID = Deck.all.randomElement()?.id
+                    orientation = Bool.random() ? .reversed : .upright
+                }
+            })
 
             if cardID != nil {
                 Button {

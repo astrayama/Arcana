@@ -100,6 +100,7 @@ private struct IntroPage: View {
 
 private struct SignInPage: View {
     @EnvironmentObject private var session: SessionStore
+    @EnvironmentObject private var store: AppStore
     var next: () -> Void
 
     @State private var showEmailSheet = false
@@ -120,12 +121,7 @@ private struct SignInPage: View {
             Spacer()
 
             if session.state == .demo {
-                // No Supabase credentials configured — run on the local ledger.
-                GoldButton(title: "Continue — local ledger ✦") { next() }
-                Text("Add Supabase keys in AppConfig.swift to enable sync & sign-in.")
-                    .bodyFont(11.5)
-                    .foregroundStyle(Arcana.Palette.faint)
-                    .multilineTextAlignment(.center)
+                GoldButton(title: "Continue ✦") { next() }
             } else {
                 // Sign in with Apple only when the entitlement is available
                 // (paid Developer Program). Otherwise email is the path.
@@ -135,7 +131,10 @@ private struct SignInPage: View {
                     } onCompletion: { result in
                         Task {
                             await session.signInWithApple(result: result)
-                            if session.state == .signedIn { next() }
+                            if session.state == .signedIn {
+                                store.syncEnabled = true
+                                next()
+                            }
                         }
                     }
                     .signInWithAppleButtonStyle(.white)
@@ -146,6 +145,14 @@ private struct SignInPage: View {
                 } else {
                     GoldButton(title: "Continue with email ✦") { showEmailSheet = true }
                 }
+
+                Button("Continue without sync") {
+                    store.syncEnabled = false
+                    next()
+                }
+                .bodyFont(13, weight: .semibold)
+                .foregroundStyle(Arcana.Palette.muted)
+                .padding(.top, 4)
 
                 Text("syncs with your existing web account")
                     .bodyFont(11.5)
@@ -170,9 +177,10 @@ private struct SignInPage: View {
     }
 }
 
-/// Email + password fallback for existing Supabase accounts.
+/// Email + password fallback for existing accounts.
 private struct EmailSignInSheet: View {
     @EnvironmentObject private var session: SessionStore
+    @EnvironmentObject private var store: AppStore
     @Environment(\.dismiss) private var dismiss
     var onSignedIn: () -> Void
 
@@ -210,6 +218,7 @@ private struct EmailSignInSheet: View {
                     }
                     busy = false
                     if session.state == .signedIn {
+                        store.syncEnabled = true
                         dismiss()
                         onSignedIn()
                     }
@@ -249,7 +258,7 @@ private struct ReminderPage: View {
 
             SparkleText(size: 44)
 
-            Text("An evening nudge?")
+            Text("A daily nudge?")
                 .displayFont(28)
                 .foregroundStyle(Arcana.Palette.text)
 
