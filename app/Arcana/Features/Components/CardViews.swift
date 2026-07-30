@@ -113,7 +113,19 @@ struct ProceduralCardFace: View {
 
 /// The card back (`.cback`): deep gradient, gold border, moon glyph.
 struct CardBackView: View {
+    /// The deck carousel draws many backs at 60 Hz and pools one shared shadow
+    /// underneath, so it opts out of the per-card drop shadow.
+    var showsShadow: Bool = true
+
     var body: some View {
+        if showsShadow {
+            core.shadow(color: .black.opacity(0.45), radius: 9, y: 6)
+        } else {
+            core
+        }
+    }
+
+    private var core: some View {
         GeometryReader { geo in
             ZStack {
                 LinearGradient(
@@ -130,7 +142,6 @@ struct CardBackView: View {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .strokeBorder(Arcana.Palette.gold.opacity(0.42), lineWidth: 1.5)
         )
-        .shadow(color: .black.opacity(0.45), radius: 9, y: 6)
     }
 }
 
