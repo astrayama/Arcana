@@ -1,12 +1,14 @@
 import SwiftUI
 import CoreMotion
+import QuartzCore
 
-/// In-app draw — wireframe 2c. Hold a question in mind, the fanned deck drifts
-/// with device tilt, hold-to-draw fills the ring, then a 3D flip reveals the card
-/// with a crisp haptic tick.
+/// In-app draw — wireframe 2c. Hold a question in mind, then tilt the phone to
+/// riffle through all 78 face-down cards; the centered card is the active one.
+/// Hold-to-draw fills the ring and the active card flips over with a crisp tick.
 struct DrawView: View {
     @EnvironmentObject private var router: Router
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
 
     private enum Phase { case idle, revealing, revealed }
 
@@ -15,7 +17,8 @@ struct DrawView: View {
     @State private var holdProgress: CGFloat = 0
     @State private var holdTimer: Timer?
     @State private var flipAngle: Double = 0
-    @StateObject private var tilt = TiltModel()
+    @State private var deckMotion = DeckMotionModel()
+    @State private var shuffledDeck: [TarotCard] = Deck.all.shuffled()
 
     var body: some View {
         ZStack {
@@ -46,47 +49,38 @@ struct DrawView: View {
                 Spacer()
             }
         }
-        .onAppear { tilt.start() }
-        .onDisappear { tilt.stop(); holdTimer?.invalidate() }
+        .onAppear { deckMotion.start() }
+        .onDisappear { deckMotion.stop(); holdTimer?.invalidate() }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                deckMotion.start()
+                deckMotion.recalibrate()
+            } else {
+                deckMotion.stop()
+            }
+        }
     }
 
-    // MARK: Idle — question + fan + hold ring
+    // MARK: Idle — question + 78-card carousel + hold ring
 
     private var idleContent: some View {
-        VStack(spacing: 26) {
+        VStack(spacing: 22) {
             Text("Hold a question\nin mind")
                 .displayFont(25)
                 .foregroundStyle(Arcana.Palette.text)
                 .multilineTextAlignment(.center)
 
-            deckFan
+            DeckCarouselView(model: deckMotion, deck: shuffledDeck)
 
-            Text("the deck drifts as you tilt the phone")
+            Text(deckMotion.motionAvailable
+                 ? "tilt to shuffle · hold to draw"
+                 : "swipe the deck to shuffle · hold to draw")
                 .bodyFont(13)
                 .foregroundStyle(Arcana.Palette.muted)
 
             holdRing
         }
         .padding(.horizontal, 24)
-    }
-
-    /// Five fanned card backs (`2c`), parallaxed by device motion.
-    private var deckFan: some View {
-        ZStack {
-            ForEach(0..<5, id: \.self) { i in
-                let angle = Double(i - 2) * 11.0
-                let lift: CGFloat = abs(CGFloat(i - 2)) * 18
-                CardBackView()
-                    .frame(width: 94, height: 156)
-                    .rotationEffect(.degrees(angle))
-                    .offset(x: CGFloat(i - 2) * 58, y: lift)
-                    // Deeper cards drift slightly more — cheap parallax.
-                    .offset(x: tilt.x * (6 + CGFloat(i) * 2),
-                            y: tilt.y * (4 + CGFloat(i) * 1.5))
-                    .animation(.easeOut(duration: 0.25), value: tilt.x)
-            }
-        }
-        .frame(width: 340, height: 220)
     }
 
     /// Hold-to-draw: the gold ring fills while pressed; release early to reset.
@@ -110,11 +104,13 @@ struct DrawView: View {
                 .onChanged { _ in startHold() }
                 .onEnded { _ in cancelHold() }
         )
-        .accessibilityLabel("Hold to draw a card")
+        .accessibilityLabel("Hold to draw the centered card")
     }
 
     private func startHold() {
         guard holdTimer == nil, phase == .idle else { return }
+        // Freeze the riffle so the card being committed to can't drift mid-hold.
+        deckMotion.freeze()
         holdTimer = Timer.scheduledTimer(withTimeInterval: 1 / 60, repeats: true) { _ in
             holdProgress += (1 / 60) / 1.2   // ~1.2s to fill
             if holdProgress >= 1 {
@@ -127,11 +123,12 @@ struct DrawView: View {
     private func cancelHold() {
         guard phase == .idle else { return }
         holdTimer?.invalidate(); holdTimer = nil
+        deckMotion.unfreeze()
         withAnimation(.easeOut(duration: 0.3)) { holdProgress = 0 }
     }
 
     private func drawCard() {
-        let card = Deck.all.randomElement()!
+        let card = shuffledDeck[deckMotion.activeIndex]
         let orientation: Orientation = Int.random(in: 0..<3) == 0 ? .reversed : .upright
         drawn = (card, orientation)
         phase = .revealing
@@ -190,6 +187,10 @@ struct DrawView: View {
                             holdProgress = 0
                             self.drawn = nil
                         }
+                        // Fresh shuffle ritual: new order, recentered, regrip as neutral.
+                        shuffledDeck = Deck.all.shuffled()
+                        deckMotion.reset()
+                        deckMotion.unfreeze()
                     }
                     .frame(width: 130)
                 }
@@ -200,27 +201,280 @@ struct DrawView: View {
     }
 }
 
-// MARK: - Device tilt
+// MARK: - 78-card carousel
 
-/// Publishes a gentle normalized tilt offset from CoreMotion (falls back to zero
-/// in the simulator or when motion is unavailable).
-final class TiltModel: ObservableObject {
-    @Published var x: CGFloat = 0
-    @Published var y: CGFloat = 0
-    private let manager = CMMotionManager()
+/// The full deck fanned as a riffle arc, face down. This is the only view that
+/// reads `model.position`, so the 60 Hz motion updates re-render just this
+/// subtree — never the whole `DrawView` body.
+private struct DeckCarouselView: View {
+    let model: DeckMotionModel
+    let deck: [TarotCard]
+
+    @State private var isDragging = false
+
+    var body: some View {
+        let position = model.position
+        // Only the cards whose opacity is > 0 are in the tree (≤11 of 78);
+        // the fade-out below reaches 0 before the window edge, so cards
+        // enter and leave invisibly.
+        let lo = max(0, Int(ceil(position - 5)))
+        let hi = min(deck.count - 1, Int(floor(position + 5)))
+
+        VStack(spacing: 14) {
+            ZStack {
+                // One shared pool of shadow; the card backs render shadow-free.
+                Ellipse()
+                    .fill(Color.black.opacity(0.35))
+                    .frame(width: 250, height: 54)
+                    .blur(radius: 18)
+                    .offset(y: 100)
+
+                ForEach(lo...hi, id: \.self) { index in
+                    card(at: index, position: position)
+                }
+            }
+            .frame(width: 340, height: 224)
+            .contentShape(Rectangle())
+            .gesture(scrubGesture)
+
+            Text("\(model.activeIndex + 1) of \(deck.count)")
+                .bodyFont(12, weight: .semibold)
+                .foregroundStyle(Arcana.Palette.faint)
+                .monospacedDigit()
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Card deck")
+        .accessibilityValue("Card \(model.activeIndex + 1) of \(deck.count)")
+        .accessibilityHint("Tilt the phone or swipe to shuffle. Hold the button below to draw the centered card.")
+        .accessibilityAdjustableAction { direction in
+            model.nudge(direction == .increment ? 1 : -1)
+        }
+    }
+
+    /// Coverflow-style transforms as functions of the card's signed distance
+    /// from the continuous deck position. No implicit animations — the 60 Hz
+    /// integrator in `DeckMotionModel` is the animation.
+    private func card(at index: Int, position: CGFloat) -> some View {
+        let d = CGFloat(index) - position
+        let absD = abs(d)
+        let center = max(0, 1 - absD)   // 1 at the active card, 0 by its neighbors
+        return CardBackView(showsShadow: false)
+            .frame(width: 94, height: 156)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.black.opacity(min(0.45, absD * 0.11)))
+            )
+            .shadow(color: Arcana.Palette.gold.opacity(center * 0.35), radius: 16)
+            .scaleEffect(1 + center * 0.08)
+            .rotationEffect(.degrees(d * 8))
+            .offset(x: d * 42, y: d * d * 2.5 - center * 10)
+            .opacity(absD <= 3.5 ? 1 : max(0, 1 - (absD - 3.5) / 1.5))
+            .zIndex(Double(-absD))
+    }
+
+    /// Drag scrub — the only input on the Simulator (no device motion) and a
+    /// handy override on device. Separate view from the hold ring, no conflict.
+    private var scrubGesture: some Gesture {
+        DragGesture(minimumDistance: 8)
+            .onChanged { value in
+                if !isDragging {
+                    isDragging = true
+                    model.beginScrub()
+                }
+                model.scrub(translation: value.translation.width)
+            }
+            .onEnded { value in
+                isDragging = false
+                model.endScrub(translation: value.translation.width,
+                               predicted: value.predictedEndTranslation.width)
+            }
+    }
+}
+
+// MARK: - Deck motion
+
+/// Velocity-integrated device roll drives a continuous position through the
+/// deck: tilting past a small dead zone riffles the cards, leveling the phone
+/// settles onto the nearest one. The roll baseline is the grip captured on
+/// start, so a natural reading angle keeps the deck still. Falls back to drag
+/// scrubbing where device motion is unavailable (e.g. the Simulator).
+@Observable
+final class DeckMotionModel {
+    // MARK: Tuning
+    private let deadZone: CGFloat = 0.07      // rad (~4°) of roll ignored around neutral
+    private let gain: CGFloat = 30            // cards/sec per rad beyond the dead zone
+    private let maxSpeed: CGFloat = 14        // cards/sec cap (full deck in ~6s)
+    private let smoothing: CGFloat = 0.15     // roll low-pass factor (~0.1s @ 60 Hz)
+    private let pointsPerCard: CGFloat = 36   // drag-scrub mapping
+
+    // MARK: Read by views
+    private(set) var position: CGFloat        // continuous, 0...(count-1)
+    private(set) var activeIndex: Int         // written only when it changes
+    let motionAvailable: Bool
+
+    let centerIndex: Int
+    private let lastIndex: CGFloat
+    private let manager: CMMotionManager
+
+    @ObservationIgnored private var frameTimer: Timer?
+    @ObservationIgnored private var referenceAttitude: CMAttitude?
+    @ObservationIgnored private var smoothedRoll: CGFloat = 0
+    @ObservationIgnored private var velocity: CGFloat = 0
+    @ObservationIgnored private var lastFrameTime: TimeInterval?
+    @ObservationIgnored private var isFrozen = false
+    @ObservationIgnored private var isScrubbing = false
+    @ObservationIgnored private var scrubAnchor: CGFloat = 0
+    @ObservationIgnored private var wasAtEnd = false
+    @ObservationIgnored private var lastTickTime: TimeInterval = 0
+
+    init(cardCount: Int = Deck.all.count) {
+        let center = (cardCount - 1) / 2
+        let motion = CMMotionManager()
+        centerIndex = center
+        lastIndex = CGFloat(cardCount - 1)
+        position = CGFloat(center)
+        activeIndex = center
+        manager = motion
+        motionAvailable = motion.isDeviceMotionAvailable
+    }
+
+    // MARK: Lifecycle
 
     func start() {
-        guard manager.isDeviceMotionAvailable else { return }
-        manager.deviceMotionUpdateInterval = 1 / 30
-        manager.startDeviceMotionUpdates(to: .main) { [weak self] motion, _ in
-            guard let self, let attitude = motion?.attitude else { return }
-            // Clamp to keep the drift subtle.
-            self.x = CGFloat(max(-1, min(1, attitude.roll / 0.8)))
-            self.y = CGFloat(max(-1, min(1, attitude.pitch / 0.8)))
+        if motionAvailable, !manager.isDeviceMotionActive {
+            manager.deviceMotionUpdateInterval = 1 / 60
+            manager.startDeviceMotionUpdates(to: .main) { [weak self] motion, _ in
+                guard let self, let attitude = motion?.attitude else { return }
+                guard let reference = self.referenceAttitude else {
+                    // First sample: the current grip becomes neutral.
+                    self.referenceAttitude = attitude.copy() as? CMAttitude
+                    return
+                }
+                let relative = attitude.copy() as! CMAttitude
+                relative.multiply(byInverseOf: reference)
+                self.smoothedRoll += self.smoothing * (CGFloat(relative.roll) - self.smoothedRoll)
+            }
+        }
+        if frameTimer == nil {
+            lastFrameTime = nil
+            let timer = Timer(timeInterval: 1 / 60, repeats: true) { [weak self] _ in
+                self?.step()
+            }
+            // .common so the riffle keeps integrating while a gesture is tracking.
+            RunLoop.main.add(timer, forMode: .common)
+            frameTimer = timer
         }
     }
 
     func stop() {
         manager.stopDeviceMotionUpdates()
+        frameTimer?.invalidate(); frameTimer = nil
+        velocity = 0
+    }
+
+    /// Re-capture the neutral grip on the next motion sample (e.g. after
+    /// returning from the background, where the hold likely changed).
+    func recalibrate() {
+        referenceAttitude = nil
+        smoothedRoll = 0
+    }
+
+    // MARK: Hold / draw
+
+    /// A hold began: stop the scroll and snap so the active card is
+    /// unambiguous while the ring fills.
+    func freeze() {
+        isFrozen = true
+        velocity = 0
+        commit(position.rounded(), now: CACurrentMediaTime())
+    }
+
+    func unfreeze() {
+        isFrozen = false
+    }
+
+    /// Draw again: recenter on the (re)shuffled deck and re-zero the grip.
+    func reset() {
+        velocity = 0
+        wasAtEnd = false
+        if CGFloat(centerIndex) != position { position = CGFloat(centerIndex) }
+        if centerIndex != activeIndex { activeIndex = centerIndex }
+        recalibrate()
+    }
+
+    // MARK: Drag scrub
+
+    func beginScrub() {
+        isScrubbing = true
+        scrubAnchor = position
+        velocity = 0
+    }
+
+    /// Dragging left advances through the deck (cards are laid out left→right).
+    func scrub(translation: CGFloat) {
+        guard isScrubbing else { return }
+        commit(scrubAnchor - translation / pointsPerCard, now: CACurrentMediaTime())
+    }
+
+    func endScrub(translation: CGFloat, predicted: CGFloat) {
+        isScrubbing = false
+        // Seed a fling from the gesture's projected remainder; the frame
+        // timer's settle logic then lands it on a card.
+        let fling = -(predicted - translation) / pointsPerCard / 0.4
+        velocity = min(maxSpeed, max(-maxSpeed, fling))
+    }
+
+    /// VoiceOver adjustable action: step one card without tilting.
+    func nudge(_ delta: Int) {
+        velocity = 0
+        commit(position.rounded() + CGFloat(delta), now: CACurrentMediaTime())
+    }
+
+    // MARK: Integrator
+
+    private func step() {
+        let now = CACurrentMediaTime()
+        // Clamp dt so a stall or backgrounding can't teleport the deck.
+        let dt = min(now - (lastFrameTime ?? now), 0.05)
+        lastFrameTime = now
+        guard !isFrozen, !isScrubbing else { return }
+
+        // Tilt beyond the dead zone maps to a capped scroll velocity.
+        let excess = max(0, abs(smoothedRoll) - deadZone)
+        let target = min(maxSpeed, gain * excess) * (smoothedRoll < 0 ? -1 : 1)
+        velocity += (target - velocity) * min(1, 10 * dt)
+
+        var p = position + velocity * dt
+        let hitEnd = p <= 0 || p >= lastIndex
+        if hitEnd {
+            p = min(lastIndex, max(0, p))
+            if !wasAtEnd, abs(velocity) > 2 { Haptics.soft() }   // end-of-deck thud
+            velocity = 0
+        }
+        wasAtEnd = hitEnd
+
+        // Level and slow → settle onto the nearest card, never between two.
+        if excess == 0, abs(velocity) < 0.8 {
+            let snap = p.rounded()
+            p += (snap - p) * min(1, 8 * dt)
+            if abs(p - snap) < 0.01 { p = snap; velocity = 0 }
+        }
+
+        commit(p, now: now)
+    }
+
+    /// Single write path: clamps, publishes only real changes, and drives the
+    /// haptic ratchet as the active card passes the center.
+    private func commit(_ newPosition: CGFloat, now: TimeInterval) {
+        let clamped = min(lastIndex, max(0, newPosition))
+        if clamped != position { position = clamped }
+        let index = Int(clamped.rounded())
+        if index != activeIndex {
+            activeIndex = index
+            if now - lastTickTime > 0.04 {   // throttle when riffling fast
+                Haptics.tick()
+                lastTickTime = now
+            }
+        }
     }
 }
