@@ -60,12 +60,15 @@ struct Provider: TimelineProvider {
     private func makeEntry() async -> Entry {
         let snapshot = Snapshot.read()
         var image: UIImage?
+        let maxSize = CGSize(width: 200, height: 350)
+        
         if let snapshot, snapshot.isLoggedToday {
             if let id = snapshot.cardID, let bundled = UIImage(named: "card-\(id)") {
-                image = bundled
+                image = bundled.preparingThumbnail(of: maxSize) ?? bundled
             } else if let urlString = snapshot.imageURLString, let url = URL(string: urlString),
-                      let (data, _) = try? await URLSession.shared.data(from: url) {
-                image = UIImage(data: data)
+                      let (data, _) = try? await URLSession.shared.data(from: url),
+                      let downloaded = UIImage(data: data) {
+                image = downloaded.preparingThumbnail(of: maxSize) ?? downloaded
             }
         }
         return Entry(date: .now, snapshot: snapshot, cardImage: image)
